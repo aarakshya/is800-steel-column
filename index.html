@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steel Column Design (IS 800:2007)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4ef; --panel:#ffffff; --ink:#1d2329; --muted:#5d6670; --line:#d9d6cc;
+  --accent:#1f4e79; --accent-soft:#e6eef6;
+  --pass:#1e7a46; --pass-bg:#e3f3e9; --fail:#b3261e; --fail-bg:#fbe5e3; --info:#7a5a00; --info-bg:#fbf1d6;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{background:var(--ink);color:#fff;padding:22px 28px}
+header h1{margin:0;font-size:21px;font-weight:600}
+header p{margin:4px 0 0;color:#b9c2cb;font-size:13.5px}
+.wrap{display:grid;grid-template-columns:380px 1fr;gap:22px;padding:22px 28px;max-width:1500px;margin:0 auto}
+@media (max-width:980px){.wrap{grid-template-columns:1fr;padding:16px}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px}
+aside.panel{padding:16px 18px;align-self:start;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:980px){aside.panel{position:static;max-height:none}}
+h2{font-size:15px;margin:0 0 10px;font-weight:600;letter-spacing:.2px}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:16px 0 6px;font-weight:600}
+.field{display:grid;grid-template-columns:1fr 104px 46px;align-items:center;gap:6px;margin:5px 0}
+.field label{font-size:13.5px}
+.field input,.field select{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:4px;font:13.5px "IBM Plex Mono",monospace;background:#fcfbf8}
+.field select,.field input[type=text]{font-family:"IBM Plex Sans",sans-serif}
+.field .u{font-size:12px;color:var(--muted)}
+.field.wide{grid-template-columns:1fr 190px}
+.field.full{grid-template-columns:1fr}
+.field.full label{font-size:12.5px;color:var(--muted)}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{font:500 13px "IBM Plex Sans",sans-serif;padding:7px 12px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.ghost{background:#fff;color:var(--accent)}
+button.small{padding:3px 9px;font-size:12px}
+button.calc-btn{width:100%;padding:11px;font-size:15px;font-weight:600;margin-top:16px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+.sub{font-size:12.5px;font-weight:600;color:var(--accent);margin:12px 0 2px}
+.hint{font-size:12px;line-height:1.45;margin:6px 0 4px;padding:6px 9px;border-radius:4px;background:#f4f6f8;border-left:3px solid var(--muted)}
+.hint.ok{border-left-color:var(--pass);background:#f1f8f3}
+.hint.bad{border-left-color:var(--fail);background:#fdf2f1}
+#toast{font-size:12.5px;min-height:18px;margin-top:6px;color:var(--accent)}
+.props{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:4px;margin:6px 0 4px;overflow:hidden}
+.props>div{padding:4px 7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.props>div:nth-child(3n){border-right:none}
+.props span{display:block;font-size:10px;color:var(--muted)}
+.props b{font:500 11.5px "IBM Plex Mono",monospace}
+.load{border:1px solid var(--line);border-radius:6px;padding:7px 8px 8px;margin:7px 0;background:#fcfbf8}
+.load.D{border-left:4px solid #5d6670}.load.L{border-left:4px solid #1f4e79}
+.lrow{display:flex;gap:6px;align-items:center}
+.lrow select{flex:1;padding:4px 5px;border:1px solid var(--line);border-radius:4px;font:13px "IBM Plex Sans",sans-serif;background:#fff}
+.lrow .no{font:600 12px "IBM Plex Mono",monospace;color:var(--muted);width:18px}
+.lrow .del{padding:2px 8px;background:#fff;color:var(--fail);border-color:#e5b4ae}
+.lvals{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.lvals label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:1px}
+.lvals input{width:100%;padding:4px 5px;border:1px solid var(--line);border-radius:4px;font:12.5px "IBM Plex Mono",monospace;background:#fff}
+.preview{margin:4px 0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+.preview .lhead{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);background:#f7f6f1}
+.preview .lhead b{font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.preview svg{display:block;width:100%;height:auto;background:#fff}
+.lstatus{font-size:10.5px;padding:5px 9px;line-height:1.45;border-top:1px solid var(--line)}
+.lstatus.ok{background:#f1f8f3;color:#1e5f39}.lstatus.bad{background:#fdf2f1;color:#8f1f18}.lstatus.na{background:#f4f6f8;color:var(--muted)}
+main{display:flex;flex-direction:column;gap:22px;min-width:0}
+#results{display:flex;flex-direction:column;gap:22px}
+.empty{padding:60px 30px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+.stale{background:var(--info-bg);border:1px solid #ecd58f;color:var(--info);border-radius:6px;padding:10px 16px;font-size:14px}
+.verdict{display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:6px;border:1px solid}
+.verdict.pass{background:var(--pass-bg);border-color:#a9d6b9}
+.verdict.fail{background:var(--fail-bg);border-color:#efb3ad}
+.verdict .big{font-size:26px;font-weight:600;letter-spacing:.5px}
+.verdict.pass .big{color:var(--pass)} .verdict.fail .big{color:var(--fail)}
+.verdict .txt{font-size:14px}
+.ubars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.ubars{grid-template-columns:repeat(2,1fr)}}
+.ubar{border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff}
+.ubar span{font-size:11.5px;color:var(--muted);display:block}
+.ubar b{font:500 18px "IBM Plex Mono",monospace}
+.ubar .bar{height:5px;background:#e7e4da;border-radius:3px;margin-top:6px;overflow:hidden}
+.ubar .bar i{display:block;height:100%}
+section.panel{padding:18px 22px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;background:#f0eee7;font-size:12.5px}
+td.num{font-family:"IBM Plex Mono",monospace}
+tr.grp td{background:#f7f6f1;font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+tr.total td{font-weight:600;background:#f7f6f1;border-top:2px solid var(--ink)}
+.tscroll{overflow-x:auto}
+.badge{display:inline-block;padding:2px 9px;border-radius:3px;font:600 12px "IBM Plex Sans",sans-serif;letter-spacing:.4px}
+.badge.pass{background:var(--pass-bg);color:var(--pass)}
+.badge.fail{background:var(--fail-bg);color:var(--fail)}
+.badge.info{background:var(--info-bg);color:var(--info)}
+.part{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin:22px 0 4px;font-weight:600;border-bottom:2px solid var(--accent-soft);padding-bottom:4px}
+.part:first-child{margin-top:0}
+.step{border-top:1px solid var(--line);padding:14px 0}
+.part + .step{border-top:none}
+.step-h{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.step-h b{font-size:14.5px}
+.ref{font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:3px}
+.calc{font-family:"IBM Plex Mono",monospace;font-size:13px;background:#faf9f5;border:1px solid #ebe8de;border-radius:4px;padding:9px 12px;margin-top:8px;overflow-x:auto;line-height:1.75}
+.calc .r{font-weight:600;color:var(--accent)}
+.step p{margin:6px 0 0;font-size:13.5px;color:#333a41}
+.figs{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.figs svg,.detail svg{max-width:100%;height:auto;background:#fff}
+.detail{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.detail figure{margin:0;text-align:center}
+.detail figcaption{font-size:12.5px;color:var(--muted);margin-top:4px}
+h4{font-size:13.5px;margin:18px 0 8px}
+.refs li{font-size:13px;margin:3px 0}
+.footnote{font-size:12.5px;color:var(--muted);text-align:center;margin:4px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+</style>
+
+</head>
+<body>
+<style>
+.bu{border:1px solid var(--line);border-radius:8px;background:#fcfbf8;padding:8px 10px;margin:8px 0}
+.bu svg{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:6px;touch-action:none}
+.bu .drag{cursor:ew-resize}
+.bu .drag:hover path,.bu .drag:hover rect{fill:#b9cde0}
+.combo{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:7px 8px 8px;margin:7px 0;background:#fcfbf8}
+.combo .lrow input[type=text]{flex:1;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font:13px "IBM Plex Sans",sans-serif;background:#fff}
+.cvals{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px}
+.cvals label{display:block;font-size:10px;color:var(--muted);margin-bottom:1px}
+.cvals input{width:100%;padding:4px 4px;border:1px solid var(--line);border-radius:4px;font:12px "IBM Plex Mono",monospace;background:#fff}
+</style>
+<header>
+  <h1>Steel Column Design to IS 800:2007</h1>
+  <p>Rolled I-sections, channels and hollow sections from the Indian tables, a welded I-section, or a built-up column of two channels or two I-sections joined by battens. Axial compression with end moments about both axes in several load combinations: classification, flexural buckling, lateral-torsional buckling, shear, section and member interaction, and full batten design. Limit state method, SI units.</p>
+</header>
+
+<div class="wrap">
+<aside class="panel">
+<form id="form" autocomplete="off">
+  <h2>Input parameters</h2>
+
+  <h3>Job</h3>
+  <div class="field wide"><label>Project</label><input id="proj" type="text" placeholder="optional"></div>
+  <div class="field wide"><label>Column mark</label><input id="mark" type="text" placeholder="e.g. C1"></div>
+
+  <h3>Section</h3>
+  <div class="field wide"><label>Section type</label><select id="fam"></select></div>
+  <div class="field wide" id="row_sec"><label>Designation</label><select id="sec"></select></div>
+  <div id="weld_rows" hidden>
+    <div class="field"><label>Overall depth, D</label><input id="wD" type="number" step="any"><span class="u">mm</span></div>
+    <div class="field"><label>Flange width, b<sub>f</sub></label><input id="wB" type="number" step="any"><span class="u">mm</span></div>
+    <div class="field"><label>Web thickness, t<sub>w</sub></label><input id="wtw" type="number" step="any"><span class="u">mm</span></div>
+    <div class="field"><label>Flange thickness, t<sub>f</sub></label><input id="wtf" type="number" step="any"><span class="u">mm</span></div>
+  </div>
+  <div id="bu_rows" hidden>
+    <div class="field wide"><label>Component type</label><select id="bComp"></select></div>
+    <div class="field wide"><label>Component</label><select id="bSec"></select></div>
+    <div class="field wide" id="row_bArr"><label>Arrangement</label><select id="bArr"><option value="btb">Back to back  ] [</option><option value="toe">Toes facing in  [ ]</option></select></div>
+    <div class="field"><label>Clear gap between components, g</label><input id="gap" type="number" step="any" min="0"><span class="u">mm</span></div>
+    <div class="bu">
+      <div class="lhead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><b style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)">Section builder</b><span style="font-size:10.5px;color:var(--muted)">drag a component to change the gap</span></div>
+      <svg id="bu_svg" viewBox="0 0 340 230" role="img" aria-label="Built-up section builder"></svg>
+      <div class="props" id="bu_props" style="margin-top:6px"></div>
+      <div class="btns" style="margin-top:4px">
+        <button type="button" class="ghost small" id="gapEq">Set gap for r<sub>y</sub> = r<sub>z</sub></button>
+        <button type="button" class="ghost small" id="gap11">r<sub>y</sub> = 1.1 r<sub>z</sub></button>
+        <button type="button" class="ghost small" id="gapM">− 5 mm</button>
+        <button type="button" class="ghost small" id="gapP">+ 5 mm</button>
+      </div>
+      <p class="note" style="margin-top:6px">z-z passes through both components (material axis). y-y lies between them (free axis), and its stiffness grows with the gap. 7.7.1.1 asks for r<sub>y</sub> ≥ r<sub>z</sub> where practicable.</p>
+    </div>
+  </div>
+  <div class="props" id="props"></div>
+  <div class="btns" style="margin-top:6px"><button type="button" class="ghost small" id="lightest">Find the lightest passing section of this type</button></div>
+
+  <h3>Material</h3>
+  <div class="field wide"><label>Steel grade (IS 2062)</label><select id="grade">
+    <option value="E250">E 250 (Fe 410 W)</option><option value="E275">E 275 (Fe 430)</option><option value="E300">E 300 (Fe 440)</option>
+    <option value="E350">E 350 (Fe 490)</option><option value="E410">E 410 (Fe 540)</option><option value="E450">E 450 (Fe 570)</option></select></div>
+  <div class="field wide" id="row_hollow"><label>Hollow section made by</label><select id="hollow"><option value="cold">Cold forming (class b)</option><option value="hot">Hot finishing (class a)</option></select></div>
+  <p class="note" style="margin-top:2px" id="fyNote"></p>
+
+  <h3>Length and restraints</h3>
+  <div class="preview">
+    <div class="lhead"><b>Column</b><span id="prevNote" style="font-size:10.5px;color:var(--muted)"></span></div>
+    <svg id="prev_svg" viewBox="0 0 360 300" role="img" aria-label="Column elevation"></svg>
+    <div class="lstatus na" id="prev_read"></div>
+  </div>
+  <div class="field"><label>Column length, L</label><input id="L" type="number" step="any"><span class="u">m</span></div>
+  <div class="field full"><label>End condition for buckling about z-z (Table 11)</label><select id="condZ"></select></div>
+  <div class="field" id="row_Kz"><label>K for z-z</label><input id="Kz" type="number" step="any"><span class="u">–</span></div>
+  <div class="field full"><label>End condition for buckling about y-y (Table 11)</label><select id="condY"></select></div>
+  <div class="field" id="row_Ky"><label>K for y-y</label><input id="Ky" type="number" step="any"><span class="u">–</span></div>
+  <div class="field"><label>Unbraced length about y-y</label><input id="Ly" type="number" step="any"><span class="u">m</span></div>
+  <div class="field"><label>Effective length for LTB, L<sub>LT</sub></label><input id="LLT" type="number" step="any"><span class="u">m</span></div>
+  <div class="field wide"><label>Frame</label><select id="sway"><option value="no">Braced, non-sway</option><option value="yes">Free to sway</option></select></div>
+  <div class="field full"><label>Slenderness limit (Table 3)</label><select id="slim"><option value="180">180, compression from dead and imposed loads</option><option value="250">250, compression only from wind or earthquake</option></select></div>
+
+  <h3>Factored load combinations</h3>
+  <div class="field wide"><label>Self weight of the column</label><select id="sw"><option value="yes">Add to the axial force</option><option value="no">Ignore</option></select></div>
+  <div class="field"><label>Load factor on self weight</label><input id="gSW" type="number" step="any"><span class="u">γ<sub>f</sub></span></div>
+  <div id="combos"></div>
+  <div class="btns" style="margin-top:4px"><button type="button" class="ghost small" id="addCombo">+ Load combination</button></div>
+  <p class="note">Enter factored values: P in kN (compression positive), end moments in kN·m at the top and bottom. Moments with the same sign bend the column in single curvature; opposite signs give double curvature. M<sub>z</sub> acts about z-z, M<sub>y</sub> about y-y.</p>
+
+  <div id="bat_rows" hidden>
+  <h3>Battens (7.7)</h3>
+  <div class="field"><label>Number of bays</label><input id="nBays" type="number" step="1" min="3"><span class="u">–</span></div>
+  <div class="field"><label>End batten depth</label><input id="bdE" type="number" step="any"><span class="u">mm</span></div>
+  <div class="field"><label>Intermediate batten depth</label><input id="bdI" type="number" step="any"><span class="u">mm</span></div>
+  <div class="field"><label>Batten thickness, t</label><input id="bt" type="number" step="any"><span class="u">mm</span></div>
+  <div class="field"><label>Lap on each component</label><input id="ov" type="number" step="any"><span class="u">mm</span></div>
+  <div class="field"><label>Fillet weld size, s</label><input id="wS" type="number" step="any"><span class="u">mm</span></div>
+  <div class="hint" id="bat_hint"></div>
+  <div class="btns" style="margin-top:4px"><button type="button" class="ghost small" id="sizeBat">Size battens to the code minimums</button></div>
+  </div>
+
+  <button type="submit" class="calc-btn" id="calcBtn">Calculate</button>
+</form>
+
+  <h3>Export</h3>
+  <div class="btns" style="margin-top:4px">
+    <button id="pdf" disabled>Export PDF</button>
+    <button id="xls" disabled>Export Excel</button>
+    <button class="ghost" id="copy" disabled>Copy report text</button>
+  </div>
+  <div id="toast"></div>
+  <p class="note">Assumptions: prismatic member, end moments only (no load along the height), no holes in the section, static loads, nonseismic design. Factored axial force and moments come from your frame analysis.</p>
+</aside>
+
+<main>
+  <section class="panel empty" id="empty"><b>No results yet</b>Enter the input parameters and click Calculate.</section>
+  <div id="results" hidden>
+    <div class="stale" id="stale" hidden>Inputs have changed since the last calculation. Click Calculate to update the results.</div>
+    <div id="verdict" class="verdict"></div>
+    <div class="ubars" id="ubars"></div>
+
+    <section class="panel">
+      <h2>Check summary</h2>
+      <div class="tscroll"><table id="checks"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Load combinations</h2>
+      <div class="tscroll"><table id="ctab"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Input summary</h2>
+      <table id="inputs"></table>
+    </section>
+
+    <section class="panel">
+      <h2>Column, end moments and buckling lengths</h2>
+      <div class="figs" id="figs"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Design procedure</h2>
+      <div id="steps"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Outcome and summary</h2>
+      <div id="summary"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Section detail</h2>
+      <div class="detail" id="detail"></div>
+      <h4>Section properties</h4>
+      <div class="tscroll"><table id="schedule"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>References</h2>
+      <ul class="refs" id="refs"></ul>
+    </section>
+  </div>
+  <p class="footnote">Developed by Aarakshya Kandel</p>
+</main>
+</div>
+
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/jspdf.plugin.autotable.min.js"></script>
+<script src="lib/xlsx.mini.min.js"></script>
+<script src="lib/fonts.js"></script>
+<script>
+
+const SECTIONS = {"ISJB":[["ISJB 150",7.07,9.0,150.0,50.0,3.0,4.6,5.0,321.0,9.21,42.8,49.5,0.548,506.0],["ISJB 175",8.07,10.2,175.0,50.0,3.2,4.8,5.0,480.0,9.65,54.9,64.2,0.656,724.0],["ISJB 200",9.92,12.6,200.0,60.0,3.4,5.0,5.0,780.0,17.2,78.0,90.9,0.873,1710.0],["ISJB 225",12.78,16.2,225.0,80.0,3.7,5.0,6.5,1310.0,40.4,116.0,134.0,1.27,5160.0]],"ISLB":[["ISLB 75",6.05,7.71,75.0,50.0,3.7,5.0,6.5,72.7,10.0,19.3,22.3,0.737,127.0],["ISLB 100",8.01,10.2,100.0,50.0,4.0,6.4,7.0,168.0,12.7,33.6,38.9,1.38,292.0],["ISLB(P) 100",8.75,11.1,100.0,50.0,4.3,7.0,8.0,181.0,14.0,36.3,42.3,1.86,315.0],["ISLB 125",11.87,15.1,125.0,75.0,4.4,6.5,8.0,406.0,43.3,65.1,73.9,2.21,1600.0],["ISLB 150",14.19,18.0,150.0,80.0,4.8,6.8,9.5,687.0,55.2,91.7,104.0,3.02,2970.0],["ISLB 175",16.59,21.1,175.0,90.0,5.0,6.9,9.5,1090.0,79.5,124.0,141.0,3.55,5920.0],["ISLB(P) 175",16.6,21.1,175.0,80.0,5.2,7.7,9.5,1060.0,57.2,122.0,140.0,4.5,4590.0],["ISLB 200",19.83,25.2,200.0,100.0,5.4,7.3,9.5,1690.0,115.0,169.0,192.0,4.61,11200.0],["ISLB(P) 200",21.06,26.8,200.0,100.0,5.6,8.0,9.5,1800.0,112.0,180.0,205.0,6.27,12200.0],["ISLB 225",23.47,29.9,225.0,100.0,5.8,8.6,12.0,2500.0,112.0,222.0,254.0,8.47,16700.0],["ISLB 250",27.87,35.5,250.0,125.0,6.1,8.2,13.0,3720.0,193.0,297.0,338.0,10.2,39000.0],["ISLB 275",32.96,42.0,275.0,140.0,6.4,8.8,14.0,5370.0,287.0,391.0,443.0,14.0,71200.0],["ISLB 300",37.72,48.0,300.0,150.0,6.7,9.4,15.0,7340.0,376.0,489.0,554.0,18.1,111000.0],["ISLB(P) 300",41.5,52.8,300.0,140.0,7.0,11.6,15.0,8140.0,414.0,542.0,614.0,26.3,110000.0],["ISLB 325",43.07,54.8,325.0,165.0,7.0,9.8,16.0,9880.0,510.0,608.0,688.0,22.8,182000.0],["ISLB 350",49.44,63.0,350.0,165.0,7.4,11.4,16.0,13100.0,632.0,752.0,851.0,32.3,244000.0],["ISLB 400",56.82,72.4,400.0,165.0,8.0,12.5,16.0,19300.0,716.0,965.0,1090.0,41.2,351000.0],["ISLB 450",65.22,83.1,450.0,170.0,8.6,13.4,16.0,27500.0,853.0,1220.0,1400.0,51.8,522000.0],["ISLB 500",74.92,95.4,500.0,180.0,9.2,14.1,17.0,38500.0,1060.0,1540.0,1770.0,65.5,808000.0],["ISLB 550",86.28,109.0,550.0,190.0,9.9,15.0,18.0,53100.0,1330.0,1930.0,2220.0,84.5,1220000.0],["ISLB 600",99.39,126.0,600.0,210.0,10.5,15.5,20.0,72900.0,1820.0,2430.0,2790.0,107.0,2040000.0]],"ISMB":[["ISMB 100",8.95,11.4,100.0,50.0,4.7,7.0,9.0,182.0,12.5,36.4,42.6,2.15,315.0],["ISMB 125",13.35,17.0,125.0,70.0,5.0,8.0,9.0,445.0,38.4,71.3,82.1,3.99,1560.0],["ISMB 150",14.96,19.0,150.0,75.0,5.0,8.0,9.0,718.0,46.7,95.7,109.0,4.36,2830.0],["ISMB 175",19.5,24.8,175.0,85.0,5.8,9.0,10.0,1260.0,76.6,144.0,165.0,7.17,6340.0],["ISMB 200",24.17,30.8,200.0,100.0,5.7,10.0,11.0,2110.0,136.0,211.0,240.0,10.7,15000.0],["ISMB 225",31.15,39.7,225.0,110.0,6.5,11.8,12.0,3440.0,218.0,306.0,348.0,18.6,29700.0],["ISMB 250",37.3,47.5,250.0,125.0,6.9,12.5,13.0,5130.0,334.0,410.0,465.0,25.5,57300.0],["ISMB 300",46.02,58.6,300.0,140.0,7.7,13.1,14.0,8990.0,486.0,599.0,681.0,34.7,123000.0],["ISMB 350",52.33,66.7,350.0,140.0,8.1,14.2,14.0,13600.0,537.0,779.0,889.0,43.1,183000.0],["ISMB 400",61.55,78.4,400.0,140.0,8.9,16.0,14.0,20400.0,622.0,1020.0,1170.0,59.6,269000.0],["ISMB 450",72.38,92.2,450.0,150.0,9.4,17.4,15.0,30400.0,834.0,1350.0,1550.0,81.0,457000.0],["ISMB 500",86.88,110.0,500.0,180.0,10.2,17.2,17.0,45200.0,1360.0,1800.0,2070.0,103.0,974000.0],["ISMB 550",103.6,132.0,550.0,190.0,11.2,19.3,18.0,64900.0,1830.0,2360.0,2710.0,150.0,1550000.0],["ISMB 600",121.0,154.0,600.0,210.0,12.0,20.3,20.0,90200.0,2570.0,3000.0,3450.0,198.0,2630000.0]],"ISWB":[["ISWB 150",17.0,21.6,150.0,100.0,5.4,7.0,8.0,839.0,94.7,111.0,126.0,4.22,5960.0],["ISWB 175",22.06,28.1,175.0,125.0,5.8,7.4,8.0,1510.0,188.0,172.0,194.0,6.22,16900.0],["ISWB 200 (28.8 kg/m)",28.8,36.7,200.0,140.0,6.1,9.0,9.0,2620.0,328.0,262.0,294.0,11.3,37500.0],["ISWB 200 (52.09 kg/m)",52.09,66.4,203.0,152.0,8.9,16.5,15.5,4780.0,809.0,470.0,539.0,65.8,83900.0],["ISWB 225",33.93,43.2,225.0,150.0,6.4,9.9,9.0,3920.0,448.0,348.0,389.0,15.5,64400.0],["ISWB 250",40.84,52.0,250.0,200.0,6.7,9.0,10.0,5940.0,857.0,475.0,527.0,17.8,174000.0],["ISWB 300",48.12,61.3,300.0,200.0,7.4,10.0,11.0,9820.0,990.0,654.0,731.0,24.7,280000.0],["ISWB 350",56.89,72.4,350.0,200.0,8.0,11.4,12.0,15500.0,1170.0,887.0,995.0,35.6,435000.0],["ISWB 400",66.71,85.0,400.0,200.0,8.6,13.0,13.0,23400.0,1380.0,1170.0,1320.0,50.6,648000.0],["ISWB 450",79.52,101.0,450.0,200.0,9.2,15.4,15.0,35100.0,1700.0,1560.0,1760.0,78.7,969000.0],["ISWB 500",95.12,121.0,500.0,250.0,9.9,14.7,15.0,52200.0,2980.0,2090.0,2350.0,94.3,2250000.0],["ISWB 550",112.5,143.0,550.0,250.0,10.5,17.6,16.0,74900.0,3740.0,2720.0,3060.0,145.0,3240000.0],["ISWB 600 (133.7 kg/m)",133.7,170.0,600.0,250.0,11.2,21.3,17.0,106000.0,4700.0,3540.0,3980.0,234.0,4640000.0],["ISWB 600 (145.1 kg/m)",145.1,184.0,600.0,250.0,11.8,23.6,18.0,115000.0,5290.0,3850.0,4340.0,305.0,5100000.0]],"ISHB":[["ISHB 150",27.06,34.4,150.0,150.0,5.4,9.0,8.0,1450.0,431.0,194.0,215.0,10.1,25100.0],["ISHB 150* (30.15 kg/m)",30.15,38.4,150.0,150.0,8.4,9.0,8.0,1510.0,435.0,201.0,228.0,12.6,25100.0],["ISHB 150* (33.66 kg/m)",33.66,42.9,150.0,150.0,11.8,9.0,8.0,1570.0,439.0,210.0,243.0,17.4,25100.0],["ISHB 200",37.31,47.5,200.0,200.0,6.1,9.0,9.0,3600.0,967.0,360.0,397.0,14.9,109000.0],["ISHB 200*",39.73,50.6,200.0,200.0,7.8,9.0,9.0,3690.0,971.0,369.0,411.0,16.6,109000.0],["ISHB 225",43.12,54.9,225.0,225.0,6.5,9.1,10.0,5280.0,1350.0,469.0,515.0,18.3,201000.0],["ISHB 225*",46.52,59.2,225.0,225.0,8.6,9.1,10.0,5430.0,1360.0,483.0,538.0,20.8,201000.0],["ISHB 250",50.98,64.9,250.0,250.0,6.9,9.7,10.0,7730.0,1960.0,619.0,678.0,24.5,364000.0],["ISHB 250*",54.41,69.3,250.0,250.0,8.8,9.7,10.0,7930.0,1970.0,634.0,704.0,27.2,364000.0],["ISHB 300",58.74,74.8,300.0,250.0,7.6,10.6,11.0,12500.0,2190.0,836.0,921.0,32.4,577000.0],["ISHB 300*",62.67,79.8,300.0,250.0,9.4,10.6,11.0,12800.0,2200.0,858.0,956.0,36.2,577000.0],["ISHB 350",67.42,85.9,350.0,250.0,8.3,11.6,12.0,19100.0,2450.0,1090.0,1210.0,42.8,864000.0],["ISHB 350*",72.03,91.7,350.0,250.0,10.1,11.6,12.0,19600.0,2460.0,1120.0,1260.0,48.3,864000.0],["ISHB 400",77.43,98.6,400.0,250.0,9.1,12.7,14.0,28000.0,2720.0,1400.0,1560.0,57.8,1240000.0],["ISHB 400*",81.83,104.0,400.0,250.0,10.6,12.7,14.0,28700.0,2730.0,1430.0,1610.0,63.9,1240000.0],["ISHB 450",87.22,111.0,450.0,250.0,9.8,13.7,15.0,39200.0,2980.0,1740.0,1950.0,73.5,1690000.0],["ISHB 450*",92.19,117.0,450.0,250.0,11.3,13.7,15.0,40100.0,2990.0,1780.0,2020.0,81.5,1690000.0]],"ISSC":[["ISSC 100",19.97,25.4,100.0,100.0,6.0,10.0,12.0,434.0,136.0,87.0,101.0,10.6,3370.0],["ISSC 120",26.22,33.4,120.0,120.0,6.5,11.0,12.0,840.0,255.0,140.0,161.0,16.5,9400.0],["ISSC 140",33.25,42.3,140.0,140.0,7.0,12.0,12.0,1470.0,437.0,210.0,240.0,24.6,22400.0],["ISSC 150*",36.93,47.0,152.0,152.0,7.9,11.9,11.7,1920.0,554.0,253.0,288.0,27.6,34100.0],["ISSC 160",41.85,53.3,160.0,160.0,8.0,13.0,15.0,2410.0,694.0,302.0,345.0,38.3,47900.0],["ISSC 180",50.48,64.3,180.0,180.0,8.5,14.0,15.0,3730.0,1050.0,414.0,471.0,52.8,93700.0],["ISSC 200",60.24,76.7,200.0,200.0,9.0,15.0,18.0,5520.0,1520.0,552.0,627.0,74.9,171000.0],["ISSC 220",70.41,89.6,220.0,220.0,9.5,16.0,18.0,7860.0,2150.0,715.0,809.0,98.4,295000.0],["ISSC 250",85.54,108.0,250.0,250.0,10.0,17.0,23.0,12400.0,3250.0,995.0,1120.0,143.0,600000.0]],"NPB":[["NPB 100 x 55 x 8.1",8.1,10.3,100.0,55.0,4.1,5.7,7.0,171.0,15.9,34.2,39.4,1.15,351.0],["NPB 120 x 60 x 10.37",10.37,13.2,120.0,64.0,4.4,6.3,7.0,317.0,27.6,52.9,60.7,1.69,889.0],["NPB 140 x 70 x 12.89",12.89,16.4,140.0,73.0,4.7,6.9,7.0,541.0,44.9,77.3,88.3,2.4,1980.0],["NPB 160 x 80 x 15.77",15.77,20.0,160.0,82.0,5.0,7.4,9.0,869.0,68.3,108.0,123.0,3.54,3950.0],["NPB 180 x 90 x 15.37",15.37,19.5,177.0,91.0,4.3,6.5,9.0,1060.0,81.8,120.0,135.0,2.67,5930.0],["NPB 180 x 90 x 18.8",18.8,23.9,180.0,91.0,5.3,8.0,9.0,1310.0,100.0,146.0,166.0,4.72,7430.0],["NPB 180 x 90 x 21.27",21.27,27.0,182.0,92.0,6.0,9.0,9.0,1500.0,117.0,165.0,189.0,6.64,8730.0],["NPB 200 x 150 x 30.46",30.46,38.7,194.0,150.0,6.0,9.0,12.0,2670.0,507.0,275.0,306.0,10.4,43300.0],["NPB 200 x 100 x 18.43",18.43,23.4,197.0,100.0,4.5,7.0,12.0,1590.0,117.0,161.0,181.0,4.13,10500.0],["NPB 200 x 100 x 22.36",22.36,28.4,200.0,100.0,5.6,8.5,12.0,1940.0,142.0,194.0,220.0,6.92,12900.0],["NPB 200 x 165 x 35.69",35.69,45.4,201.0,165.0,6.2,10.0,12.0,3410.0,749.0,339.0,376.0,14.5,68200.0],["NPB 200 x 100 x 25.09",25.09,31.9,202.0,102.0,6.2,9.5,12.0,2210.0,168.0,218.0,249.0,9.36,15500.0],["NPB 200 x 165 x 42.48",42.48,54.1,205.0,166.0,7.2,12.0,12.0,4160.0,915.0,406.0,454.0,24.1,85100.0],["NPB 200 x 130 x 27.37",27.37,34.8,207.0,133.0,5.8,8.5,12.0,2660.0,334.0,257.0,288.0,8.48,32800.0],["NPB 200 x 130 x 31.56",31.56,40.1,210.0,134.0,6.4,10.0,12.0,3150.0,401.0,300.0,337.0,12.8,40100.0],["NPB 200 x 165 x 48.0",48.0,61.1,210.0,166.0,6.5,14.5,12.0,5020.0,1100.0,478.0,534.0,37.9,105000.0],["NPB 220 x 110 x 22.18",22.18,28.2,217.0,110.0,5.0,7.7,12.0,2310.0,171.0,213.0,240.0,5.68,18700.0],["NPB 220 x 110 x 26.2",26.2,33.3,220.0,110.0,5.9,9.2,12.0,2770.0,204.0,251.0,285.0,9.03,22600.0],["NPB 220 x 110 x 29.35",29.35,37.3,222.0,112.0,6.6,10.2,12.0,3130.0,239.0,282.0,321.0,12.1,26700.0],["NPB 240 x 120 x 26.15",26.15,33.3,237.0,120.0,5.2,8.3,15.0,3290.0,240.0,277.0,311.0,8.51,31200.0],["NPB 240 x 120 x 30.71",30.71,39.1,240.0,120.0,6.2,9.8,15.0,3890.0,283.0,324.0,366.0,12.9,37300.0],["NPB 240 x 120 x 34.32",34.32,43.7,242.0,122.0,7.0,10.8,15.0,4360.0,328.0,361.0,410.0,17.1,43600.0],["NPB 250 x 175 x 43.94",43.94,55.9,244.0,175.0,7.0,11.0,15.0,6090.0,984.0,499.0,555.0,22.4,133000.0],["NPB 250 x 125 x 30.11",30.11,38.3,250.0,125.0,6.0,9.0,15.0,4130.0,294.0,331.0,373.0,11.1,42500.0],["NPB 250 x 150 x 34.08",34.08,43.4,258.0,146.0,6.1,9.2,15.0,5120.0,478.0,396.0,444.0,12.8,73800.0],["NPB 250 x 150 x 39.78",39.78,50.6,262.0,147.0,6.6,11.2,15.0,6200.0,594.0,473.0,530.0,20.3,93200.0],["NPB 250 x 150 x 46.48",46.48,59.2,266.0,148.0,7.6,13.2,15.0,7380.0,715.0,554.0,625.0,31.5,113000.0],["NPB 270 x 135 x 30.73",30.73,39.1,267.0,135.0,5.5,8.7,15.0,4910.0,357.0,368.0,412.0,10.4,59500.0],["NPB 270 x 135 x 36.07",36.07,45.9,270.0,135.0,6.6,10.2,15.0,5780.0,419.0,428.0,483.0,15.9,70500.0],["NPB 270 x 135 x 42.26",42.26,53.8,274.0,136.0,7.5,12.2,15.0,6940.0,513.0,507.0,574.0,25.0,87600.0],["NPB 300 x 150 x 36.53",36.53,46.5,297.0,150.0,6.1,9.2,15.0,7170.0,518.0,483.0,541.0,13.3,107000.0],["NPB 300 x 150 x 42.24",42.24,53.8,300.0,150.0,7.1,10.7,15.0,8350.0,603.0,557.0,628.0,19.9,125000.0],["NPB 300 x 200 x 59.57",59.57,75.8,303.0,203.0,7.5,13.1,15.0,12800.0,1820.0,848.0,940.0,39.5,383000.0],["NPB 300 x 150 x 49.32",49.32,62.8,304.0,152.0,8.0,12.7,15.0,9990.0,745.0,657.0,743.0,30.9,157000.0],["NPB 300 x 200 x 66.75",66.75,85.0,306.0,204.0,8.5,14.6,15.0,14500.0,2060.0,948.0,1050.0,54.3,438000.0],["NPB 300 x 165 x 39.88",39.88,50.7,310.0,165.0,5.8,9.7,15.0,8790.0,727.0,567.0,630.0,15.4,163000.0],["NPB 300 x 200 x 75.37",75.37,96.0,310.0,205.0,9.4,16.6,15.0,16600.0,2380.0,1070.0,1200.0,77.6,512000.0],["NPB 300 x 165 x 45.76",45.76,58.2,313.0,166.0,6.6,11.2,15.0,10200.0,855.0,652.0,727.0,22.5,194000.0],["NPB 300 x 165 x 53.46",53.46,68.1,317.0,167.0,7.6,13.2,15.0,12100.0,1020.0,764.0,857.0,35.2,236000.0],["NPB 330 x 160 x 42.97",42.97,54.7,327.0,160.0,6.5,10.0,18.0,10200.0,685.0,625.0,701.0,19.6,171000.0],["NPB 330 x 160 x 49.15",49.15,62.6,330.0,160.0,7.5,11.5,18.0,11700.0,788.0,713.0,804.0,28.0,199000.0],["NPB 330 x 160 x 57.01",57.01,72.6,334.0,162.0,8.5,13.5,18.0,13900.0,960.0,832.0,942.0,42.2,245000.0],["NPB 350 x 250 x 79.18",79.18,100.0,340.0,250.0,9.0,14.0,18.0,21500.0,3650.0,1260.0,1400.0,63.4,968000.0],["NPB 350 x 170 x 50.22",50.22,63.9,357.6,170.0,6.6,11.5,18.0,14500.0,944.0,811.0,906.0,27.3,281000.0],["NPB 350 x 170 x 57.1",57.1,72.7,360.0,170.0,8.0,12.7,18.0,16200.0,1040.0,903.0,1010.0,37.4,313000.0],["NPB 350 x 170 x 66.05",66.05,84.1,364.0,172.0,9.2,14.7,18.0,19000.0,1250.0,1040.0,1180.0,55.7,380000.0],["NPB 400 x 180 x 57.38",57.38,73.0,397.0,180.0,7.0,12.0,21.0,20200.0,1170.0,1020.0,1140.0,36.1,432000.0],["NPB 400 x 180 x 66.31",66.31,84.4,400.0,180.0,8.6,13.5,21.0,23100.0,1310.0,1150.0,1300.0,51.3,490000.0],["NPB 400 x 200 x 67.28",67.28,85.7,400.0,200.0,8.0,13.0,21.0,24200.0,1730.0,1210.0,1350.0,48.5,648000.0],["NPB 400 x 180 x 75.67",75.67,96.3,404.0,182.0,9.7,15.5,21.0,26700.0,1560.0,1320.0,1500.0,73.3,587000.0],["NPB 450 x 190 x 67.16",67.16,85.5,447.0,190.0,7.6,13.1,21.0,29700.0,1500.0,1330.0,1490.0,47.1,704000.0],["NPB 450 x 190 x 77.58",77.58,98.8,450.0,190.0,9.4,14.6,21.0,33700.0,1670.0,1490.0,1700.0,66.7,791000.0],["NPB 450 x 190 x 92.37",92.37,117.0,456.0,192.0,11.0,17.6,21.0,40900.0,2080.0,1790.0,2040.0,109.0,997000.0],["NPB 500 x 200 x 79.36",79.36,101.0,497.0,200.0,8.4,14.5,21.0,42900.0,1930.0,1720.0,1940.0,64.3,1120000.0],["NPB 500 x 200 x 90.69",90.69,115.0,500.0,200.0,10.2,16.0,21.0,48100.0,2140.0,1920.0,2190.0,89.1,1240000.0],["NPB 500 x 200 x 107.32",107.3,136.0,506.0,202.0,12.0,19.0,21.0,57700.0,2620.0,2280.0,2610.0,142.0,1540000.0],["NPB 550 x 210 x 92.08",92.08,117.0,547.0,210.0,9.0,15.7,24.0,59900.0,2430.0,2190.0,2470.0,89.3,1710000.0],["NPB 550 x 210 x 105.52",105.5,134.0,550.0,210.0,11.1,17.2,24.0,67100.0,2660.0,2440.0,2780.0,122.0,1880000.0],["NPB 550 x 210 x 122.52",122.5,156.0,556.0,212.0,12.7,20.2,24.0,79100.0,3220.0,2840.0,3260.0,187.0,2300000.0],["NPB 600 x 220 x 107.57",107.6,137.0,597.0,220.0,9.8,17.5,24.0,82900.0,3110.0,2770.0,3140.0,122.0,2600000.0],["NPB 600 x 220 x 122.45",122.5,155.0,600.0,220.0,12.0,19.0,24.0,92000.0,3380.0,3060.0,3510.0,165.0,2840000.0],["NPB 600 x 220 x 154.47",154.5,196.0,610.0,224.0,15.0,24.0,24.0,118000.0,4520.0,3870.0,4470.0,316.0,3850000.0],["NPB 700 x 250 x 113.46",113.5,144.0,694.0,250.0,9.0,16.0,24.0,118000.0,4170.0,3420.0,3850.0,107.0,4780000.0],["NPB 700 x 250 x 128.41",128.4,163.0,695.0,250.0,11.5,16.5,24.0,128000.0,4310.0,3680.0,4210.0,136.0,4940000.0],["NPB 700 x 250 x 143.42",143.4,182.0,700.0,250.0,12.5,19.0,24.0,145000.0,4960.0,4160.0,4760.0,190.0,5730000.0],["NPB 700 x 250 x 153.87",153.9,196.0,704.0,250.0,13.0,21.0,24.0,159000.0,5480.0,4520.0,5170.0,240.0,6370000.0],["NPB 700 x 250 x 171.48",171.5,218.0,709.0,250.0,14.5,23.5,24.0,178000.0,6140.0,5030.0,5770.0,328.0,7180000.0],["NPB 750 x 270 x 145.29",145.3,185.0,750.0,265.0,13.2,16.6,17.0,161000.0,5160.0,4310.0,5000.0,150.0,6920000.0],["NPB 750 x 270 x 174.54",174.5,222.0,760.0,270.0,14.4,21.6,17.0,206000.0,7100.0,5430.0,6240.0,272.0,9650000.0],["NPB 750 x 270 x 202.49",202.5,257.0,770.0,270.0,15.6,26.6,17.0,249000.0,8750.0,6480.0,7430.0,450.0,12000000.0]],"WPB":[["WPB 100 x 100 x 12.24",12.24,15.5,91.0,100.0,4.2,5.5,12.0,236.0,92.0,51.9,58.3,2.32,1670.0],["WPB 100 x 100 x 16.67",16.67,21.2,96.0,100.0,5.0,8.0,12.0,349.0,133.0,72.7,83.0,5.28,2580.0],["WPB 100 x 100 x 20.44",20.44,26.0,100.0,100.0,6.0,10.0,12.0,449.0,167.0,89.9,104.0,9.33,3370.0],["WPB 120 x 120 x 14.56",14.56,18.5,109.0,120.0,4.2,5.5,12.0,413.0,158.0,75.8,84.1,2.59,4240.0],["WPB 120 x 120 x 19.89",19.89,25.3,114.0,120.0,5.0,8.0,12.0,606.0,230.0,106.0,119.0,6.04,6470.0],["WPB 120 x 120 x 26.7",26.7,34.0,120.0,120.0,6.5,11.0,12.0,864.0,317.0,144.0,165.0,13.9,9400.0],["WPB 100 x 100 x 41.79",41.79,53.2,120.0,106.0,12.0,20.0,12.0,1140.0,399.0,190.0,235.0,67.2,9920.0],["WPB 140 x 140 x 18.08",18.08,23.0,128.0,140.0,4.3,6.0,12.0,719.0,274.0,112.0,123.0,3.43,10200.0],["WPB 140 x 140 x 24.66",24.66,31.4,133.0,140.0,5.5,8.5,12.0,1030.0,389.0,155.0,173.0,8.1,15000.0],["WPB 140 x 140 x 33.72",33.72,42.9,140.0,140.0,7.0,12.0,12.0,1500.0,549.0,215.0,245.0,20.1,22400.0],["WPB 120 x 120 x 52.13",52.13,66.4,140.0,126.0,12.5,21.0,12.0,2010.0,702.0,288.0,350.0,90.5,24700.0],["WPB 160 x 160 x 22.75",22.75,28.9,148.0,160.0,4.5,7.0,8.0,1220.0,478.0,165.0,181.0,4.54,23700.0],["WPB 150 x 150 x 23.5",23.5,29.9,152.0,152.0,5.8,6.8,12.0,1270.0,398.0,167.0,186.0,5.55,20900.0],["WPB 160 x 160 x 30.44",30.44,38.7,152.0,160.0,6.0,9.0,15.0,1670.0,615.0,220.0,245.0,12.1,31400.0],["WPB 150 x 150 x 30.11",30.11,38.3,158.0,153.0,6.5,9.4,8.0,1760.0,561.0,222.0,248.0,10.6,30900.0],["WPB 160 x 160 x 42.59",42.59,54.2,160.0,160.0,8.0,13.0,15.0,2490.0,889.0,311.0,353.0,31.2,47900.0],["WPB 140 x 140 x 63.24",63.24,80.5,160.0,146.0,13.0,22.0,12.0,3290.0,1140.0,411.0,493.0,118.0,54300.0],["WPB 150 x 150 x 36.97",36.97,47.0,162.0,154.0,8.0,11.5,8.0,2210.0,700.0,273.0,308.0,19.2,39600.0],["WPB 180 x 180 x 28.68",28.68,36.5,167.0,180.0,5.0,7.5,15.0,1960.0,729.0,235.0,258.0,8.32,46300.0],["WPB 180 x 180 x 35.52",35.52,45.2,171.0,180.0,6.0,9.5,15.0,2510.0,924.0,293.0,324.0,14.9,60200.0],["WPB 180 x 180 x 51.22",51.22,65.2,180.0,180.0,8.5,14.0,15.0,3830.0,1360.0,425.0,481.0,42.2,93700.0],["WPB 160 x 160 x 76.19",76.19,97.0,180.0,166.0,14.0,23.0,15.0,5090.0,1750.0,566.0,674.0,160.0,108000.0],["WPB 200 x 200 x 34.65",34.65,44.1,186.0,200.0,5.5,8.0,18.0,2940.0,1060.0,316.0,347.0,12.5,84400.0],["WPB 200 x 200 x 42.26",42.26,53.8,190.0,200.0,6.5,10.0,18.0,3690.0,1330.0,388.0,429.0,21.0,108000.0],["WPB 200 x 200 x 50.92",50.92,64.8,194.0,202.0,8.0,12.0,18.0,4530.0,1650.0,467.0,521.0,34.3,136000.0],["WPB 200 x 200 x 37.34",37.34,47.6,200.0,200.0,6.1,8.9,10.0,3628.0,1187.0,363.0,398.0,13.3,null],["WPB 200 x 200 x 61.3",61.3,78.0,200.0,200.0,9.0,15.0,18.0,5690.0,2000.0,569.0,642.0,59.7,171000.0],["WPB 180 x 180 x 88.9",88.9,113.0,200.0,186.0,14.5,24.0,15.0,7480.0,2580.0,748.0,883.0,201.0,199000.0],["WPB 220 x 220 x 40.4",40.4,51.4,205.0,220.0,6.0,8.5,18.0,4170.0,1510.0,406.0,445.0,15.5,145000.0],["WPB 200 x 200 x 74.01",74.01,94.2,206.0,206.0,10.2,18.0,18.0,7170.0,2620.0,696.0,793.0,99.3,231000.0],["WPB 200 x 200 x 83.52",83.52,106.0,209.0,209.0,13.0,19.5,18.0,8050.0,2970.0,771.0,888.0,134.0,266000.0],["WPB 220 x 220 x 50.51",50.51,64.3,210.0,220.0,7.0,11.0,18.0,5400.0,1950.0,515.0,568.0,28.6,193000.0],["WPB 220 x 220 x 71.47",71.47,91.0,220.0,220.0,9.5,16.0,18.0,8090.0,2840.0,735.0,827.0,77.0,295000.0],["WPB 200 x 200 x 103.06",103.1,131.0,220.0,206.0,15.0,25.0,18.0,10600.0,3650.0,967.0,1130.0,257.0,346000.0],["WPB 240 x 240 x 47.4",47.4,60.3,224.0,240.0,6.5,9.0,21.0,5830.0,2070.0,520.0,570.0,22.1,239000.0],["WPB 220 x 220 x 115.61",115.6,147.0,226.0,226.0,15.5,26.0,18.0,12600.0,5010.0,1120.0,1310.0,311.0,500000.0],["WPB 240 x 240 x 60.32",60.32,76.8,230.0,240.0,7.5,12.0,21.0,7760.0,2760.0,675.0,744.0,42.1,328000.0],["WPB 240 x 240 x 83.2",83.2,105.0,240.0,240.0,10.0,17.0,21.0,11200.0,3920.0,938.0,1050.0,103.0,486000.0],["WPB 260 x 260 x 54.15",54.15,68.9,244.0,260.0,6.5,9.5,24.0,7980.0,2780.0,654.0,714.0,30.1,382000.0],["WPB 250 x 250 x 67.22",67.22,85.6,247.0,252.0,11.0,11.1,24.0,9390.0,2960.0,760.0,851.0,51.3,411000.0],["WPB 260 x 260 x 68.16",68.16,86.8,250.0,260.0,7.5,12.5,24.0,10400.0,3660.0,836.0,919.0,54.2,516000.0],["WPB 250 x 250 x 73.15",73.15,93.1,252.0,250.0,9.0,13.6,24.0,11000.0,3540.0,880.0,977.0,67.6,503000.0],["WPB 250 x 250 x 85.04",85.04,108.0,253.0,255.0,14.0,14.1,24.0,12100.0,3910.0,961.0,1080.0,95.6,555000.0],["WPB 260 x 260 x 92.99",92.99,118.0,260.0,260.0,10.0,17.5,24.0,14900.0,5130.0,1140.0,1280.0,126.0,753000.0],["WPB 250 x 250 x 97.04",97.04,123.0,260.0,256.0,12.7,17.6,24.0,15000.0,4930.0,1150.0,1300.0,140.0,722000.0],["WPB 280 x 280 x 61.26",61.26,78.0,264.0,280.0,7.0,10.0,24.0,10500.0,3660.0,799.0,873.0,35.5,590000.0],["WPB 250 x 250 x 103.97",104.0,132.0,264.0,257.0,11.9,19.6,24.0,16700.0,5550.0,1270.0,1430.0,174.0,828000.0],["WPB 260 x 260 x 114.4",114.4,145.0,268.0,262.0,12.5,21.5,24.0,18900.0,6450.0,1410.0,1590.0,224.0,978000.0],["WPB 250 x 250 x 117.58",117.6,149.0,269.0,259.0,13.5,22.1,24.0,19300.0,6410.0,1430.0,1630.0,244.0,975000.0],["WPB 280 x 280 x 76.36",76.36,97.2,270.0,280.0,8.0,13.0,24.0,13600.0,4760.0,1010.0,1110.0,63.5,785000.0],["WPB 240 x 240 x 156.68",156.7,199.0,270.0,248.0,18.0,32.0,21.0,24200.0,8150.0,1790.0,2110.0,626.0,1150000.0],["WPB 250 x 250 x 133.92",133.9,170.0,275.0,261.0,15.4,25.1,24.0,22500.0,7450.0,1640.0,1880.0,351.0,1160000.0],["WPB 260 x 260 x 141.52",141.5,180.0,278.0,265.0,15.5,26.5,24.0,24300.0,8230.0,1750.0,2010.0,407.0,1290000.0],["WPB 250 x 250 x 148.38",148.4,189.0,280.0,263.0,17.3,27.6,24.0,25400.0,8380.0,1810.0,2100.0,466.0,1330000.0],["WPB 300 x 300 x 69.8",69.8,88.9,283.0,300.0,7.5,10.5,27.0,13800.0,4730.0,975.0,1060.0,47.8,877000.0],["WPB 300 x 300 x 88.34",88.34,112.0,290.0,300.0,8.5,14.0,27.0,18200.0,6300.0,1250.0,1380.0,87.8,1190000.0],["WPB 260 x 260 x 172.43",172.4,219.0,290.0,268.0,18.0,32.5,24.0,31300.0,10400.0,2150.0,2520.0,720.0,1720000.0],["WPB 300 x 300 x 100.85",100.8,128.0,294.0,300.0,10.0,16.0,27.0,21000.0,7210.0,1430.0,1580.0,124.0,1390000.0],["WPB 300 x 300 x 117.03",117.0,149.0,300.0,300.0,11.0,19.0,27.0,25100.0,8560.0,1670.0,1860.0,189.0,1680000.0],["WPB 320 x 300 x 74.25",74.25,94.5,301.0,300.0,8.0,11.0,27.0,16400.0,4950.0,1090.0,1190.0,53.6,1040000.0],["WPB 320 x 300 x 97.64",97.64,124.0,310.0,300.0,9.0,15.5,27.0,22900.0,6980.0,1470.0,1620.0,111.0,1510000.0],["WPB 280 x 280 x 188.54",188.5,240.0,310.0,288.0,18.5,33.0,24.0,39500.0,13100.0,2550.0,2960.0,807.0,2520000.0],["WPB 340 x 300 x 78.9",78.9,100.0,320.0,300.0,8.5,11.5,27.0,19500.0,5180.0,1220.0,1340.0,60.1,1230000.0],["WPB 320 x 300 x 126.66",126.7,161.0,320.0,300.0,11.5,20.5,27.0,30800.0,9230.0,1920.0,2140.0,230.0,2060000.0],["WPB 340 x 300 x 104.78",104.8,133.0,330.0,300.0,9.5,16.5,27.0,27600.0,7430.0,1670.0,1850.0,131.0,1820000.0],["WPB 360 x 300 x 91.04",91.04,106.0,339.0,300.0,9.0,12.0,27.0,23000.0,5410.0,1350.0,1490.0,67.2,1440000.0],["WPB 340 x 300 x 134.16",134.2,170.0,340.0,300.0,12.0,21.5,27.0,36600.0,9680.0,2150.0,2400.0,262.0,2450000.0],["WPB 300 x 300 x 237.92",237.9,303.0,340.0,310.0,21.0,39.0,27.0,59200.0,19400.0,3480.0,4070.0,1410.0,4380000.0],["WPB 360 x 370 x 136.21",136.2,173.0,356.0,369.0,11.2,17.8,27.0,42100.0,14900.0,2360.0,2600.0,192.0,4260000.0],["WPB 320 x 300 x 244.97",245.0,312.0,359.0,309.0,21.0,40.0,27.0,68100.0,19700.0,3790.0,4430.0,1500.0,5000000.0],["WPB 360 x 370 x 150.87",150.9,192.0,360.0,370.0,12.3,19.8,27.0,47300.0,16700.0,2620.0,2900.0,256.0,4830000.0],["WPB 360 x 370 x 165.35",165.3,210.0,364.0,371.0,13.3,21.8,27.0,52500.0,18500.0,2880.0,3200.0,333.0,5430000.0],["WPB 360 x 370 x 182.02",182.0,231.0,368.0,373.0,15.0,23.8,27.0,58200.0,20600.0,3160.0,3530.0,432.0,6090000.0],["WPB 400 x 400 x 191.11",191.1,243.0,368.0,391.0,15.0,24.2,27.0,61500.0,24100.0,3340.0,3730.0,467.0,7120000.0],["WPB 360 x 370 x 197.66",197.7,251.0,372.0,374.0,16.4,25.8,27.0,63900.0,22500.0,3430.0,3850.0,546.0,6740000.0],["WPB 400 x 400 x 219.67",219.7,279.0,375.0,394.0,17.3,27.7,27.0,72100.0,28200.0,3840.0,4320.0,691.0,8510000.0],["WPB 400 x 300 x 92.4",92.4,117.0,378.0,300.0,9.5,13.0,27.0,31200.0,5860.0,1650.0,1820.0,81.4,1940000.0],["WPB 400 x 400 x 239.62",239.6,305.0,380.0,395.0,18.9,30.2,27.0,79700.0,31000.0,4190.0,4750.0,887.0,9480000.0],["WPB 400 x 300 x 124.81",124.8,158.0,390.0,300.0,11.0,19.0,27.0,45000.0,8560.0,2310.0,2560.0,193.0,2940000.0],["WPB 360 x 300 x 250.27",250.3,318.0,395.0,308.0,21.0,40.0,27.0,84800.0,19500.0,4290.0,4980.0,1510.0,6130000.0],["WPB 400 x 300 x 155.26",155.3,197.0,400.0,300.0,13.5,24.0,27.0,57600.0,10800.0,2880.0,3230.0,361.0,3810000.0],["WPB 450 x 300 x 99.75",99.75,127.0,425.0,300.0,10.0,13.5,27.0,41800.0,6080.0,1970.0,2180.0,91.4,2570000.0],["WPB 400 x 300 x 255.74",255.7,325.0,432.0,307.0,21.0,40.0,27.0,104000.0,19300.0,4820.0,5570.0,1520.0,7410000.0],["WPB 450 x 300 x 139.76",139.8,178.0,440.0,300.0,11.5,21.0,27.0,63700.0,9460.0,2890.0,3210.0,250.0,4140000.0],["WPB 450 x 300 x 171.12",171.1,217.0,450.0,300.0,14.0,26.0,27.0,79800.0,11700.0,3550.0,3980.0,448.0,5250000.0],["WPB 500 x 300 x 107.46",107.5,136.0,472.0,300.0,10.5,14.0,27.0,54600.0,6310.0,2310.0,2570.0,102.0,3300000.0],["WPB 450 x 300 x 263.33",263.3,335.0,478.0,307.0,21.0,40.0,27.0,131000.0,19300.0,5500.0,6330.0,1530.0,9250000.0],["WPB 500 x 300 x 129.78",129.8,165.0,480.0,300.0,11.5,18.0,27.0,68900.0,8110.0,2870.0,3190.0,179.0,4320000.0],["WPB 500 x 300 x 155.08",155.1,197.0,490.0,300.0,12.0,23.0,27.0,86900.0,10300.0,3540.0,3940.0,317.0,5640000.0],["WPB 500 x 300 x 187.34",187.3,238.0,500.0,300.0,14.5,28.0,27.0,107000.0,12600.0,4280.0,4810.0,548.0,7010000.0],["WPB 550 x 300 x 119.99",120.0,152.0,522.0,300.0,11.5,15.0,27.0,72800.0,6760.0,2790.0,3120.0,126.0,4330000.0],["WPB 500 x 300 x 270.28",270.3,344.0,524.0,306.0,21.0,40.0,27.0,161000.0,19100.0,6180.0,7090.0,1540.0,11100000.0],["WPB 550 x 300 x 166.24",166.2,211.0,540.0,300.0,12.5,24.0,27.0,111000.0,10800.0,4140.0,4620.0,360.0,7180000.0],["WPB 550 x 300 x 199.44",199.4,254.0,550.0,300.0,15.0,29.0,27.0,136000.0,13000.0,4970.0,5590.0,610.0,8850000.0],["WPB 600 x 300 x 128.79",128.8,164.0,571.0,300.0,12.0,15.5,27.0,91800.0,6990.0,3210.0,3620.0,141.0,5380000.0],["WPB 550 x 300 x 278.19",278.2,354.0,572.0,306.0,21.0,40.0,27.0,197000.0,19100.0,6920.0,7930.0,1550.0,13500000.0],["WPB 600 x 300 x 177.78",177.8,226.0,590.0,300.0,13.0,25.0,27.0,141000.0,11200.0,4780.0,5350.0,407.0,8970000.0],["WPB 600 x 300 x 211.92",211.9,269.0,600.0,300.0,15.5,30.0,27.0,171000.0,13500.0,5700.0,6420.0,677.0,10900000.0],["WPB 650 x 300 x 137.98",138.0,175.0,620.0,300.0,12.5,16.0,27.0,113000.0,7220.0,3670.0,4150.0,158.0,6560000.0],["WPB 600 x 300 x 285.48",285.5,363.0,620.0,305.0,21.0,40.0,27.0,237000.0,18900.0,7650.0,8770.0,1560.0,15900000.0],["WPB 650 x 300 x 189.69",189.7,241.0,640.0,300.0,13.5,26.0,27.0,175000.0,11700.0,5470.0,6130.0,457.0,11000000.0],["WPB 650 x 300 x 224.78",224.8,286.0,650.0,300.0,16.0,31.0,27.0,210000.0,13900.0,6480.0,7310.0,749.0,13300000.0],["WPB 650 x 300 x 293.39",293.4,373.0,668.0,305.0,21.0,40.0,27.0,281000.0,18900.0,8430.0,9650.0,1580.0,18600000.0],["WPB 700 x 300 x 149.89",149.9,190.0,670.0,300.0,13.0,17.0,27.0,142000.0,7670.0,4260.0,4840.0,186.0,8150000.0],["WPB 700 x 300 x 204.48",204.5,260.0,690.0,300.0,14.5,27.0,27.0,215000.0,12100.0,6240.0,7030.0,521.0,13300000.0],["WPB 700 x 300 x 240.51",240.5,306.0,700.0,300.0,17.0,32.0,27.0,256000.0,14400.0,7330.0,8320.0,839.0,16000000.0],["WPB 700 x 300 x 300.68",300.7,383.0,716.0,304.0,21.0,40.0,27.0,329000.0,18700.0,9190.0,10500.0,1590.0,21300000.0],["WPB 800 x 300 x 171.52",171.5,218.0,770.0,300.0,14.0,18.0,30.0,208000.0,8130.0,5420.0,6220.0,243.0,11400000.0],["WPB 800 x 300 x 224.38",224.4,285.0,790.0,300.0,15.0,28.0,30.0,303000.0,12600.0,7680.0,8690.0,608.0,18200000.0],["WPB 800 x 300 x 262.34",262.3,334.0,800.0,300.0,17.5,33.0,30.0,359000.0,14900.0,8970.0,10200.0,958.0,21800000.0],["WPB 800 x 300 x 317.36",317.4,404.0,814.0,303.0,21.0,40.0,30.0,442000.0,18600.0,10800.0,12400.0,1650.0,27700000.0],["WPB 800 x 300 x 179.9",179.9,229.0,835.0,292.0,14.0,18.8,30.0,253000.0,7830.0,6080.0,7000.0,264.0,12900000.0],["WPB 850 x 300 x 195.74",195.7,249.0,840.0,292.0,14.7,21.3,30.0,282000.0,8870.0,6720.0,7730.0,343.0,14800000.0],["WPB 850 x 300 x 214.25",214.2,272.0,846.0,293.0,15.4,24.3,30.0,317000.0,10200.0,7500.0,8600.0,459.0,17100000.0],["WPB 850 x 300 x 230.56",230.6,293.0,851.0,294.0,16.1,26.8,30.0,347000.0,11300.0,8160.0,9350.0,579.0,19200000.0],["WPB 850 x 300 x 253.69",253.7,323.0,859.0,292.0,17.0,30.8,30.0,392000.0,12800.0,9130.0,10400.0,802.0,21900000.0],["WPB 900 x 300 x 198.01",198.0,252.0,870.0,300.0,15.0,20.0,30.0,301000.0,9040.0,6920.0,7990.0,321.0,16200000.0],["WPB 900 x 300 x 251.62",251.6,320.0,890.0,300.0,16.0,30.0,30.0,422000.0,13500.0,9480.0,10800.0,749.0,24900000.0],["WPB 900 x 300 x 291.46",291.5,371.0,900.0,300.0,18.5,35.0,30.0,494000.0,15800.0,10900.0,12500.0,1150.0,29400000.0]],"ISJC":[["ISJC 100",5.8,7.41,100.0,45.0,3.0,5.1,6.0,123.0,14.6,24.8,28.4,0.519,264.0],["ISJC 125",7.9,10.0,125.0,50.0,3.0,6.6,6.0,269.0,25.1,43.1,49.1,1.07,701.0],["ISJC 150",9.9,12.6,150.0,55.0,3.6,6.9,7.0,471.0,37.4,62.9,72.1,1.47,1520.0],["ISJC 175",11.2,14.2,175.0,60.0,3.6,6.9,7.0,720.0,49.6,82.3,94.2,1.62,2780.0],["ISJC 200",14.0,17.7,200.0,70.0,4.1,7.1,8.0,1160.0,82.8,116.0,133.0,2.23,6150.0]],"ISLC":[["ISLC 75",5.7,7.26,75.0,40.0,3.7,6.0,6.0,65.9,11.3,17.6,20.6,0.726,110.0],["ISLC 100",7.9,10.0,100.0,50.0,4.0,6.4,6.0,164.0,24.4,32.9,38.1,1.11,434.0],["ISLC 125",10.7,13.6,125.0,65.0,4.4,6.6,7.0,356.0,56.3,57.1,65.4,1.68,1590.0],["ISLC (P) 125",11.3,14.3,125.0,65.0,4.6,7.0,7.0,370.0,50.6,59.2,68.3,2.27,1670.0],["ISLC 150",14.4,18.3,150.0,75.0,4.8,7.8,8.0,697.0,101.0,93.1,106.0,3.04,4120.0],["ISLC (P) 150",15.6,19.8,150.0,75.0,5.0,8.7,8.0,750.0,96.1,100.0,114.0,4.55,4450.0],["ISLC 175",17.6,22.4,175.0,75.0,5.1,9.5,8.0,1140.0,124.0,131.0,150.0,5.07,6830.0],["ISLC 200",20.6,26.2,200.0,75.0,5.5,10.8,8.5,1720.0,144.0,172.0,199.0,7.31,10300.0],["ISLC (P) 200",21.5,27.3,200.0,75.0,5.7,11.4,8.5,1790.0,136.0,179.0,207.0,9.13,10800.0],["ISLC 225",24.0,30.5,225.0,90.0,5.8,10.2,11.0,2550.0,207.0,226.0,260.0,9.3,22200.0],["ISLC 250",28.0,35.6,250.0,100.0,6.1,10.7,11.0,3690.0,295.0,295.0,338.0,12.0,39700.0],["ISLC 300",33.1,42.1,300.0,100.0,6.7,11.6,12.0,6050.0,344.0,403.0,467.0,15.6,66400.0],["ISLC (P) 300",33.1,42.1,300.0,90.0,7.0,12.5,12.0,5910.0,282.0,394.0,460.0,16.8,53000.0],["ISLC 350",38.9,49.4,350.0,100.0,7.4,12.5,13.0,9310.0,391.0,532.0,623.0,20.3,103000.0],["ISLC 400",45.8,58.2,400.0,100.0,8.0,14.0,14.0,13900.0,457.0,699.0,825.0,27.9,157000.0]],"ISMC":[["ISMC 75",7.14,9.08,75.0,40.0,4.8,7.5,8.5,78.2,12.7,20.9,25.0,1.59,132.0],["ISMC 100",9.56,12.1,100.0,50.0,5.0,7.7,9.0,191.0,26.3,38.4,45.2,2.25,512.0],["ISMC 125",13.1,16.6,125.0,65.0,5.3,8.2,9.5,424.0,60.3,67.9,78.9,3.59,1900.0],["ISMC 125*",13.7,17.4,125.0,66.0,6.0,8.1,9.5,433.0,63.7,69.4,81.2,3.9,2030.0],["ISMC 150",16.8,21.3,150.0,75.0,5.7,9.0,10.0,786.0,102.0,104.0,121.0,5.45,4700.0],["ISMC 150*",17.7,22.5,150.0,76.0,6.5,9.0,10.0,810.0,108.0,108.0,126.0,6.07,5060.0],["ISMC 175",19.6,24.8,175.0,75.0,6.0,10.2,10.5,1230.0,120.0,141.0,163.0,7.49,7450.0],["ISMC 175*",22.7,27.3,175.0,76.0,7.5,10.2,10.5,1290.0,130.0,147.0,174.0,9.01,8250.0],["ISMC 200",22.3,28.4,200.0,75.0,6.2,11.4,11.0,1820.0,139.0,182.0,212.0,9.89,11000.0],["ISMC 200*",24.3,30.9,200.0,76.0,7.5,11.4,11.0,1900.0,149.0,190.0,224.0,11.4,12100.0],["ISMC 225",26.1,33.2,225.0,80.0,6.5,12.4,12.0,2700.0,185.0,240.0,279.0,13.3,18700.0],["ISMC 225*",30.7,38.7,225.0,82.0,9.0,12.4,12.0,2920.0,210.0,260.0,309.0,17.6,22000.0],["ISMC 250",30.6,38.9,250.0,80.0,7.2,14.1,12.0,3820.0,218.0,306.0,358.0,18.9,26800.0],["ISMC 250* (34.2 kg/m)",34.2,43.4,250.0,82.0,9.0,14.1,12.0,4060.0,242.0,325.0,386.0,22.8,30600.0],["ISMC 250* (38.1 kg/m)",38.1,48.1,250.0,83.0,11.0,14.1,12.0,4280.0,258.0,342.0,414.0,28.5,33800.0],["ISMC 300",36.3,46.2,300.0,90.0,7.8,13.6,13.0,6400.0,311.0,427.0,501.0,21.7,57500.0],["ISMC 300* (41.5 kg/m)",41.5,52.7,300.0,92.0,10.0,13.6,13.0,6880.0,344.0,458.0,549.0,28.1,66100.0],["ISMC 300* (46.2 kg/m)",46.2,58.4,300.0,93.0,12.0,13.6,13.0,7260.0,363.0,484.0,589.0,36.1,72300.0],["ISMC 350",42.7,54.3,350.0,100.0,8.3,13.5,14.0,10000.0,429.0,575.0,677.0,26.1,112000.0],["ISMC 400",50.1,63.7,400.0,100.0,8.8,15.3,15.0,15100.0,504.0,758.0,898.0,36.1,170000.0]],"ISMPC":[["ISMPC 75",7.14,9.1,75.0,40.0,4.8,7.5,8.5,78.6,13.7,21.0,25.2,1.48,132.0],["ISMPC 100",9.56,12.1,100.0,50.0,5.0,7.7,9.0,193.0,29.4,38.6,45.5,2.04,512.0],["ISMPC 125",13.1,16.7,125.0,65.0,5.5,8.1,9.5,426.0,69.8,68.2,79.3,3.14,1900.0],["ISMPC 125*",13.7,17.5,125.0,66.0,6.0,8.1,9.5,437.0,74.1,69.9,81.7,3.4,2030.0],["ISMPC 150",16.8,21.3,150.0,75.0,5.7,9.0,10.0,792.0,120.0,105.0,122.0,4.71,4700.0],["ISMPC 150*",17.7,22.5,150.0,76.0,6.5,9.0,10.0,817.0,128.0,109.0,126.0,5.25,5060.0],["ISMPC 175",19.6,24.9,175.0,75.0,6.0,10.2,10.5,1240.0,138.0,141.0,164.0,6.66,7450.0],["ISMPC 175*",21.7,27.6,175.0,77.0,7.5,10.2,10.5,1310.0,155.0,150.0,176.0,8.1,8550.0],["ISMPC 200",22.3,28.4,200.0,75.0,6.2,11.4,11.0,1830.0,157.0,183.0,213.0,8.99,11000.0],["ISMPC 200*",24.3,30.9,200.0,76.0,7.5,11.4,11.0,1910.0,168.0,191.0,225.0,10.4,12100.0],["ISMPC 225",26.1,33.2,225.0,80.0,6.5,12.4,12.0,2710.0,208.0,241.0,280.0,12.1,18700.0],["ISMPC 225*",30.7,39.0,225.0,83.0,9.0,12.4,12.0,2960.0,244.0,263.0,312.0,16.2,22800.0],["ISMPC 250",30.6,38.9,250.0,80.0,7.2,14.1,12.0,3830.0,240.0,307.0,359.0,17.5,26800.0],["ISMPC 250* (34.2 kg/m)",34.2,43.4,250.0,82.0,9.0,14.1,12.0,4080.0,267.0,326.0,387.0,21.1,30600.0],["ISMPC 250* (38.1 kg/m)",38.1,48.6,250.0,84.0,11.0,14.1,12.0,4350.0,295.0,348.0,420.0,26.7,34900.0],["ISMPC 300",36.3,46.2,300.0,90.0,7.8,13.6,13.0,6420.0,351.0,428.0,502.0,19.8,57500.0],["ISMPC 300* (41.5 kg/m)",41.5,52.8,300.0,92.0,10.0,13.6,13.0,6910.0,390.0,460.0,551.0,25.7,66100.0],["ISMPC 300* (46.2 kg/m)",46.2,58.8,300.0,94.0,12.0,13.6,13.0,7360.0,424.0,490.0,596.0,33.5,74400.0],["ISMPC 350",42.7,54.3,350.0,100.0,8.3,13.5,14.0,10100.0,497.0,577.0,679.0,23.4,112000.0],["ISMPC 400",50.1,63.8,400.0,100.0,8.8,15.3,15.0,15200.0,572.0,762.0,901.0,33.1,170000.0]],"SHS":[["SHS 25 x 25 x 2.6",1.69,2.16,25.0,25.0,2.6,1.72,1.72,1.38,1.76],["SHS 25 x 25 x 3.2",1.98,2.53,25.0,25.0,3.2,1.89,1.89,1.51,1.98],["SHS 30 x 30 x 2.6",2.1,2.68,30.0,30.0,2.6,3.23,3.23,2.15,2.68],["SHS 30 x 30 x 3.2",2.49,3.17,30.0,30.0,3.2,3.62,3.62,2.41,3.08],["SHS 30 x 30 x 4",2.94,3.75,30.0,30.0,4.0,3.97,3.97,2.64,3.5],["SHS 32 x 32 x 2.6",2.26,2.88,32.0,32.0,2.6,4.02,4.02,2.51,3.11],["SHS 32 x 32 x 3.2",2.69,3.42,32.0,32.0,3.2,4.54,4.54,2.84,3.59],["SHS 32 x 32 x 4",3.19,4.07,32.0,32.0,4.0,5.02,5.02,3.14,4.11],["SHS 35 x 35 x 2.6",2.51,3.2,35.0,35.0,2.6,5.43,5.43,3.1,3.81],["SHS 35 x 35 x 3.2",2.99,3.81,35.0,35.0,3.2,6.18,6.18,3.53,4.42],["SHS 35 x 35 x 4",3.57,4.55,35.0,35.0,4.0,6.93,6.93,3.96,5.11],["SHS 38 x 38 x 2.6",2.75,3.51,38.0,38.0,2.6,7.14,7.14,3.76,4.57],["SHS 38 x 38 x 2.9",3.03,3.86,38.0,38.0,2.9,7.68,7.68,4.04,4.97],["SHS 38 x 38 x 3.2",3.29,4.19,38.0,38.0,3.2,8.18,8.18,4.3,5.34],["SHS 38 x 38 x 3.6",3.63,4.62,38.0,38.0,3.6,8.76,8.76,4.61,5.8],["SHS 38 x 38 x 4",3.95,5.03,38.0,38.0,4.0,9.26,9.26,4.87,6.22],["SHS 40 x 40 x 2.6",2.92,3.72,40.0,40.0,2.6,8.45,8.45,4.22,5.12],["SHS 40 x 40 x 3.2",3.49,4.45,40.0,40.0,3.2,9.72,9.72,4.86,6.01],["SHS 40 x 40 x 3.6",3.85,4.91,40.0,40.0,3.6,10.45,10.45,5.22,6.53],["SHS 40 x 40 x 4",4.2,5.35,40.0,40.0,4.0,11.07,11.07,5.54,7.01],["SHS 45 x 45 x 2.6",3.32,4.24,45.0,45.0,2.6,12.47,12.47,5.52,6.64],["SHS 45 x 45 x 2.9",3.66,4.67,45.0,45.0,2.9,13.45,13.45,5.98,7.25],["SHS 45 x 45 x 3.2",3.99,5.09,45.0,45.0,3.2,14.41,14.41,6.4,7.83],["SHS 45 x 45 x 3.6",4.42,5.63,45.0,45.0,3.6,15.57,15.57,6.92,8.55],["SHS 45 x 45 x 4.5",5.31,6.77,45.0,45.0,4.5,17.74,17.74,7.88,9.99],["SHS 49 x 49 x 2.9",4.07,5.19,49.0,49.0,2.9,18.37,18.37,7.42,8.93],["SHS 49 x 49 x 3.6",4.93,6.28,49.0,49.0,3.6,21.42,21.42,8.66,10.6],["SHS 49 x 49 x 4.5",5.95,7.58,49.0,49.0,4.5,24.64,24.64,9.96,12.47],["SHS 63 x 63 x 3.2",5.85,7.45,63.0,63.0,3.2,44.35,44.35,13.97,16.65],["SHS 63 x 63 x 3.6",6.51,8.29,63.0,63.0,3.6,48.55,48.55,15.29,18.36],["SHS 63 x 63 x 4.5",7.93,10.1,63.0,63.0,4.5,57.0,57.0,17.95,21.93],["SHS 72 x 72 x 3.2",6.71,8.54,72.0,72.0,3.2,66.32,66.32,18.42,21.8],["SHS 72 x 72 x 4",8.22,10.47,72.0,72.0,4.0,79.03,79.03,21.95,26.32],["SHS 72 x 72 x 4.8",9.66,12.31,72.0,72.0,4.8,90.31,90.31,25.09,30.49],["SHS 75 x 75 x 3.2",7.01,8.93,75.0,75.0,3.2,75.53,75.53,20.41,23.79],["SHS 75 x 75 x 4",8.59,10.95,75.0,75.0,4.0,90.19,90.19,24.05,28.76],["SHS 75 x 75 x 4.9",10.3,13.12,75.0,75.0,4.9,104.8,104.8,27.95,33.92],["SHS 88 x 88 x 3.6",9.38,11.95,88.0,88.0,3.6,142.8,142.8,32.13,37.85],["SHS 88 x 88 x 4.5",11.52,14.67,88.0,88.0,4.5,171.0,171.0,38.46,45.55],["SHS 88 x 88 x 4.9",12.44,15.85,88.0,88.0,4.9,182.6,182.6,41.07,49.23],["SHS 91 x 91 x 3.6",9.67,12.32,91.0,91.0,3.6,156.5,156.5,34.21,40.24],["SHS 91 x 91 x 4.5",11.88,15.14,91.0,91.0,4.5,187.6,187.6,41.0,48.79],["SHS 91 x 91 x 5.4",14.01,17.85,91.0,91.0,5.4,215.7,215.7,47.14,56.77],["SHS 100 x 100 x 4",11.73,14.95,100.0,100.0,4.0,226.3,226.3,45.27,53.3],["SHS 100 x 100 x 5",14.41,18.36,100.0,100.0,5.0,271.1,271.1,54.22,64.59],["SHS 100 x 100 x 6",16.98,21.63,100.0,100.0,6.0,311.5,311.5,62.29,75.1],["SHS 113 x 113 x 4.5",14.99,19.1,113.0,113.0,4.5,372.9,372.9,65.71,77.33],["SHS 113 x 113 x 4.8",15.92,20.28,113.0,113.0,4.8,393.3,393.3,69.3,81.81],["SHS 113 x 113 x 5.4",17.74,22.6,113.0,113.0,5.4,432.6,432.6,76.23,90.55],["SHS 113 x 113 x 6",19.53,24.87,113.0,113.0,6.0,469.8,469.8,82.79,98.96],["SHS 125 x 125 x 4.5",16.62,21.17,125.0,125.0,4.5,505.8,505.8,80.93,94.54],["SHS 125 x 125 x 5",18.33,23.36,125.0,125.0,5.0,552.6,552.6,88.42,104.1],["SHS 125 x 125 x 6",21.69,27.63,125.0,125.0,6.0,640.9,640.9,102.5,121.9],["SHS 132 x 132 x 4.8",18.71,23.83,132.0,132.0,4.8,634.4,634.4,96.12,112.7],["SHS 132 x 132 x 5.4",20.88,26.59,132.0,132.0,5.4,700.1,700.1,106.1,125.0],["SHS 132 x 132 x 6",23.01,29.31,132.0,132.0,6.0,763.0,763.0,115.6,137.0],["SHS 150 x 150 x 5",22.26,28.36,150.0,150.0,5.0,982.1,982.1,130.9,153.0],["SHS 150 x 150 x 6",26.4,33.63,150.0,150.0,6.0,1146.0,1146.0,152.8,179.9],["SHS 180 x 180 x 4",21.9,27.9,180.0,180.0,4.0,1434.0,1434.0,159.0,184.0],["SHS 180 x 180 x 5",27.2,34.6,180.0,180.0,5.0,1755.0,1755.0,195.0,226.0],["SHS 180 x 180 x 6",32.05,40.83,180.0,180.0,6.0,2036.0,2036.0,226.0,280.0],["SHS 180 x 180 x 8",41.91,53.39,180.0,180.0,8.0,2591.0,2591.0,287.9,340.7]],"RHS":[["RHS 50 x 25 x 2.9",2.98,3.8,50.0,25.0,2.9,10.93,3.6,4.37,5.72],["RHS 50 x 25 x 3.2",3.24,4.13,50.0,25.0,3.2,11.63,3.8,4.65,6.14],["RHS 60 x 40 x 2.9",4.12,5.25,60.0,40.0,2.9,24.74,13.11,8.25,10.25],["RHS 66 x 33 x 2.9",4.07,5.19,66.0,33.0,2.9,27.33,9.12,8.28,10.59],["RHS 66 x 33 x 3.6",4.93,6.28,66.0,33.0,3.6,31.87,10.52,9.66,12.56],["RHS 66 x 33 x 4.5",5.95,7.58,66.0,33.0,4.5,36.64,11.93,11.1,14.77],["RHS 70 x 30 x 2.9",4.12,5.25,70.0,30.0,2.9,29.82,7.72,8.52,11.07],["RHS 70 x 30 x 3.2",4.5,5.73,70.0,30.0,3.2,32.04,8.24,9.15,11.98],["RHS 70 x 30 x 4",5.45,6.95,70.0,30.0,4.0,37.23,9.42,10.64,14.2],["RHS 80 x 40 x 2.9",5.03,6.41,80.0,40.0,2.9,50.87,17.11,12.72,16.07],["RHS 80 x 40 x 3.2",5.5,7.01,80.0,40.0,3.2,54.94,18.41,13.74,17.46],["RHS 80 x 40 x 4",6.71,8.55,80.0,40.0,4.0,64.79,21.49,16.2,20.91],["RHS 96 x 48 x 3.2",6.71,8.54,96.0,48.0,3.2,98.61,33.28,20.54,25.85],["RHS 96 x 48 x 4",8.22,10.47,96.0,48.0,4.0,117.5,39.32,24.49,31.21],["RHS 96 x 48 x 4.8",9.66,12.31,96.0,48.0,4.8,134.3,44.55,27.99,36.13],["RHS 100 x 50 x 3.2",7.01,8.93,100.0,50.0,3.2,112.3,37.95,22.46,28.2],["RHS 100 x 50 x 4",8.59,10.95,100.0,50.0,4.0,134.1,44.95,26.83,34.1],["RHS 122 x 61 x 3.6",9.67,12.32,122.0,61.0,3.6,232.6,78.83,38.13,47.71],["RHS 122 x 61 x 4.5",11.88,15.14,122.0,61.0,4.5,278.9,93.78,45.73,57.85],["RHS 122 x 61 x 5.4",14.01,17.85,122.0,61.0,5.4,320.8,107.0,52.6,67.29],["RHS 127 x 50 x 3.6",9.34,11.89,127.0,50.0,3.6,227.1,52.05,35.76,45.95],["RHS 127 x 50 x 4.6",11.69,14.89,127.0,50.0,4.6,276.3,62.46,43.52,56.66],["RHS 145 x 82 x 4.8",15.92,20.28,145.0,82.0,4.8,555.2,228.5,76.57,94.93],["RHS 145 x 82 x 5.4",17.74,22.6,145.0,82.0,5.4,610.9,250.6,84.26,105.1],["RHS 172 x 92 x 4.8",18.71,23.83,172.0,92.0,4.8,917.1,346.9,106.6,132.1],["RHS 172 x 92 x 5.4",20.88,26.59,172.0,92.0,5.4,1012.0,381.7,117.7,146.6]],"CHS":[["CHS 21.3 x 2",0.9519,1.213,21.3,2.0,0.5707,0.5359],["CHS 21.3 x 2.6",1.199,1.527,21.3,2.6,0.6806,0.639],["CHS 21.3 x 3.2",1.428,1.82,21.3,3.2,0.7684,0.7215],["CHS 26.9 x 2.3",1.395,1.778,26.9,2.3,1.356,1.008],["CHS 26.9 x 2.6",1.558,1.985,26.9,2.6,1.482,1.102],["CHS 26.9 x 3.2",1.87,2.383,26.9,3.2,1.703,1.266],["CHS 33.7 x 2.6",1.994,2.54,33.7,2.6,3.093,1.835],["CHS 33.7 x 3.2",2.407,3.066,33.7,3.2,3.605,2.139],["CHS 33.7 x 4",2.93,3.732,33.7,4.0,4.19,2.487],["CHS 42.4 x 2.6",2.552,3.251,42.4,2.6,6.464,3.049],["CHS 42.4 x 3.2",3.094,3.941,42.4,3.2,7.62,3.594],["CHS 42.4 x 4",3.788,4.825,42.4,4.0,8.991,4.241],["CHS 48.3 x 2.9",3.247,4.136,48.3,2.9,10.7,4.431],["CHS 48.3 x 3.2",3.559,4.534,48.3,3.2,11.59,4.797],["CHS 48.3 x 4",4.37,5.567,48.3,4.0,13.77,5.701],["CHS 60.3 x 2.9",4.105,5.229,60.3,2.9,21.59,7.162],["CHS 60.3 x 3.6",5.034,6.413,60.3,3.6,25.87,8.582],["CHS 60.3 x 4.5",6.193,7.889,60.3,4.5,30.9,10.25],["CHS 76.1 x 2.9",5.235,6.669,76.1,2.9,44.74,11.76],["CHS 76.1 x 3.6",6.437,8.2,76.1,3.6,54.01,14.19],["CHS 76.1 x 4.5",7.946,10.12,76.1,4.5,65.12,17.11],["CHS 88.9 x 3.2",6.763,8.616,88.9,3.2,79.21,17.82],["CHS 88.9 x 4",8.375,10.67,88.9,4.0,96.34,21.67],["CHS 88.9 x 4.8",9.955,12.68,88.9,4.8,112.5,25.31],["CHS 101.6 x 3.6",8.701,11.08,101.6,3.6,133.2,26.23],["CHS 101.6 x 4",9.628,12.26,101.6,4.0,146.3,28.8],["CHS 101.6 x 4.8",11.46,14.6,101.6,4.8,171.4,33.74],["CHS 114.3 x 3.6",9.828,12.52,114.3,3.6,192.0,33.59],["CHS 114.3 x 4.5",12.19,15.52,114.3,4.5,234.3,41.0],["CHS 114.3 x 5.4",14.5,18.47,114.3,5.4,274.5,48.04],["CHS 127 x 4.5",13.59,17.32,127.0,4.5,325.3,51.23],["CHS 127 x 4.8",14.47,18.43,127.0,4.8,344.5,54.25],["CHS 127 x 5.4",16.19,20.63,127.0,5.4,382.0,60.16],["CHS 139.7 x 4.5",15.0,19.11,139.7,4.5,437.2,62.59],["CHS 139.7 x 4.8",15.97,20.34,139.7,4.8,463.3,66.33],["CHS 139.7 x 5.4",17.89,22.78,139.7,5.4,514.5,73.66],["CHS 152.4 x 4.5",16.41,20.91,152.4,4.5,572.2,75.1],["CHS 152.4 x 4.8",17.47,22.26,152.4,4.8,606.8,79.63],["CHS 152.4 x 5.4",19.58,24.94,152.4,5.4,674.5,88.52],["CHS 165.1 x 4.5",17.82,22.7,165.1,4.5,732.6,88.74],["CHS 165.1 x 4.8",18.98,24.17,165.1,4.8,777.1,94.14],["CHS 165.1 x 5.4",21.27,27.09,165.1,5.4,864.7,104.7],["CHS 165.1 x 5.9",23.16,29.51,165.1,5.9,936.1,113.4],["CHS 165.1 x 6.3",24.67,31.43,165.1,6.3,992.3,120.2],["CHS 165.1 x 8",30.99,39.48,165.1,8.0,1221.0,147.9],["CHS 168.3 x 4.5",18.18,23.16,168.3,4.5,777.2,92.36],["CHS 168.3 x 4.8",19.35,24.66,168.3,4.8,824.6,97.99],["CHS 168.3 x 5.4",21.69,27.64,168.3,5.4,917.7,109.1],["CHS 168.3 x 6.3",25.17,32.06,168.3,6.3,1053.0,125.2],["CHS 168.3 x 8",31.63,40.29,168.3,8.0,1297.0,154.2],["CHS 168.3 x 10",39.04,49.73,168.3,10.0,1564.0,185.9],["CHS 193.7 x 4.8",22.36,28.49,193.7,4.8,1271.0,131.3],["CHS 193.7 x 5.4",25.08,31.94,193.7,5.4,1417.0,146.3],["CHS 193.7 x 5.9",27.33,34.81,193.7,5.9,1536.0,158.6],["CHS 193.7 x 6.3",29.12,37.09,193.7,6.3,1630.0,168.3],["CHS 193.7 x 8",36.64,46.67,193.7,8.0,2016.0,208.1],["CHS 193.7 x 10",45.3,57.71,193.7,10.0,2442.0,252.1],["CHS 193.7 x 12",53.77,68.5,193.7,12.0,2839.0,293.2],["CHS 219.1 x 4.8",25.37,32.32,219.1,4.8,1856.0,169.4],["CHS 219.1 x 5.6",29.49,37.56,219.1,5.6,2142.0,195.5],["CHS 219.1 x 5.9",31.02,39.52,219.1,5.9,2247.0,205.1],["CHS 219.1 x 6.3",33.06,42.12,219.1,6.3,2386.0,217.8],["CHS 219.1 x 8",41.65,53.06,219.1,8.0,2960.0,270.2],["CHS 219.1 x 10",51.57,65.69,219.1,10.0,3598.0,328.5],["CHS 219.1 x 12",61.29,78.07,219.1,12.0,4200.0,383.4],["CHS 244.5 x 5.9",34.72,44.23,244.5,5.9,3149.0,257.6],["CHS 244.5 x 6.3",37.01,47.14,244.5,6.3,3346.0,273.7],["CHS 244.5 x 8",46.66,59.44,244.5,8.0,4160.0,340.3],["CHS 244.5 x 10",57.83,73.67,244.5,10.0,5073.0,415.0],["CHS 273 x 5.9",38.86,49.51,273.0,5.9,4417.0,323.6],["CHS 273 x 6.3",41.44,52.79,273.0,6.3,4696.0,344.0],["CHS 273 x 8",52.28,66.6,273.0,8.0,5852.0,428.7],["CHS 273 x 10",64.86,82.62,273.0,10.0,7154.0,524.1],["CHS 273 x 12",77.24,98.39,273.0,12.0,8396.0,615.1],["CHS 323.9 x 6.3",49.34,62.86,323.9,6.3,7929.0,489.6],["CHS 323.9 x 8",62.32,79.39,323.9,8.0,9910.0,611.9],["CHS 323.9 x 10",77.41,98.61,323.9,10.0,12160.0,750.7],["CHS 323.9 x 12",92.3,117.6,323.9,12.0,14320.0,884.2],["CHS 355.6 x 8",68.58,87.36,355.6,8.0,13200.0,742.5],["CHS 355.6 x 10",85.23,108.6,355.6,10.0,16220.0,912.5],["CHS 355.6 x 12",101.7,129.5,355.6,12.0,19140.0,1076.0]]};
+
+// ===== engine: IS 800:2007 steel column design (no DOM) =====
+const AUTHOR = "Aarakshya Kandel";
+const E_S = 200000, G_S = 76900, GM0 = 1.10, GMW = 1.25;
+const GRADES = {
+  E250:{n:"E 250 (Fe 410 W)", fy:[250,240,230], fu:410},
+  E275:{n:"E 275 (Fe 430)", fy:[275,265,255], fu:430},
+  E300:{n:"E 300 (Fe 440)", fy:[300,290,280], fu:440},
+  E350:{n:"E 350 (Fe 490)", fy:[350,330,320], fu:490},
+  E410:{n:"E 410 (Fe 540)", fy:[410,390,380], fu:540},
+  E450:{n:"E 450 (Fe 570)", fy:[450,430,420], fu:570}
+};
+const fyOf = (G,t) => G.fy[t<20?0:(t<=40?1:2)];
+const FAMS = {
+  BUILT:{k:"BU",t:"Built-up: two members with battens"},
+  ISHB:{k:"I",t:"ISHB H-beams"}, ISSC:{k:"I",t:"ISSC column sections"}, ISWB:{k:"I",t:"ISWB wide flange beams"},
+  ISMB:{k:"I",t:"ISMB medium beams"}, ISLB:{k:"I",t:"ISLB light beams"}, ISJB:{k:"I",t:"ISJB junior beams"},
+  NPB:{k:"I",t:"NPB parallel flange beams"}, WPB:{k:"I",t:"WPB wide parallel flange beams"},
+  ISJC:{k:"C",t:"ISJC junior channels"}, ISLC:{k:"C",t:"ISLC light channels"}, ISMC:{k:"C",t:"ISMC medium channels"},
+  ISMPC:{k:"C",t:"ISMPC parallel flange channels"},
+  SHS:{k:"R",t:"SHS square hollow"}, RHS:{k:"R",t:"RHS rectangular hollow"}, CHS:{k:"O",t:"CHS circular hollow"},
+  WELD:{k:"I",t:"Welded I-section from plates",welded:true}
+};
+const COMP_FAMS = ["ISMC","ISLC","ISMPC","ISJC","ISMB","ISLB","ISWB","ISHB","ISJB","NPB","WPB"];
+const ARR = {btb:"Back to back  ] [", toe:"Toes facing in  [ ]", side:"Side by side  I I"};
+const COND = [
+  ["Fixed at both ends", 0.65],
+  ["Fixed at one end, pinned at the other", 0.80],
+  ["Pinned at both ends", 1.00],
+  ["Fixed at one end; other end rotation restrained, free to sway", 1.20],
+  ["Pinned at one end; other end rotation restrained, free to sway", 2.00],
+  ["Fixed at one end; other end pinned, free to sway", 2.00],
+  ["Fixed at one end, free at the other (cantilever)", 2.00],
+  ["User-defined K", null]
+];
+const ALPHA = {a:0.21, b:0.34, c:0.49, d:0.76};
+const CLS = ["Plastic","Compact","Semi-compact","Slender"];
+// Annex E, Table 42, K = 1, end moments: psi -> C1
+const C1T = [[-1,2.752],[-0.75,2.927],[-0.5,2.704],[-0.25,2.281],[0,1.879],[0.25,1.563],[0.5,1.323],[0.75,1.141],[1,1.000]];
+const c1Of = psi => { psi=Math.max(-1,Math.min(1,psi)); for(let i=0;i<C1T.length-1;i++){ const [a,ca]=C1T[i],[b,cb]=C1T[i+1]; if(psi>=a&&psi<=b) return ca+(cb-ca)*(psi-a)/(b-a); } return 1; };
+
+const f = (x,p=2) => (x===null||x===undefined||!isFinite(x)) ? "–" : Number(x).toLocaleString("en-US",{minimumFractionDigits:p,maximumFractionDigits:p});
+const f3 = x => f(x,3);
+const sg = (x,p=1) => (x>=0?"+":"−")+f(Math.abs(x),p);
+const refLabel = r => /^(\d|Table|Annex)/.test(r) ? "IS 800 "+r : r;
+const strip = s => String(s).replace(/<sub>(.*?)<\/sub>/g,"$1").replace(/<sup>(.*?)<\/sup>/g,"^$1").replace(/<[^>]+>/g,"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
+
+// ---------- rectangle geometry ----------
+// rect = [x0,x1,y0,y1]
+function rprops(R){
+  let A=0,Sx=0,Sy=0; R.forEach(r=>{ const a=(r[1]-r[0])*(r[3]-r[2]); A+=a; Sx+=a*(r[0]+r[1])/2; Sy+=a*(r[2]+r[3])/2; });
+  const xc=Sx/A, yc=Sy/A; let Iz=0, Iy=0;
+  R.forEach(r=>{ const b=r[1]-r[0], h=r[3]-r[2], a=b*h, dx=(r[0]+r[1])/2-xc, dy=(r[2]+r[3])/2-yc; Iz+=b*h**3/12+a*dy*dy; Iy+=h*b**3/12+a*dx*dx; });
+  return {A,xc,yc,Iz,Iy};
+}
+// plastic modulus: axis "z" (horizontal axis, integrate along y) or "y" (vertical axis, integrate along x)
+function zp(R, ax){
+  const g = r => ax==="z" ? [r[2],r[3],r[1]-r[0]] : [r[0],r[1],r[3]-r[2]];
+  const A=R.reduce((s,r)=>s+(r[1]-r[0])*(r[3]-r[2]),0);
+  const below = t => R.reduce((s,r)=>{ const [c0,c1,w]=g(r); return s+w*Math.max(0,Math.min(t,c1)-c0); },0);
+  let lo=Math.min(...R.map(r=>g(r)[0])), hi=Math.max(...R.map(r=>g(r)[1]));
+  for(let i=0;i<80;i++){ const m=(lo+hi)/2; if(below(m)<A/2) lo=m; else hi=m; }
+  const t=(lo+hi)/2;
+  return R.reduce((s,r)=>{ const [c0,c1,w]=g(r), l1=Math.max(0,Math.min(t,c1)-c0), l2=Math.max(0,c1-Math.max(t,c0)); return s+w*l1*(t-c0-l1/2)+w*l2*(c1-l2/2-t); },0);
+}
+const iRects = (D,B,tw,tf,cx=0) => [[cx-B/2,cx+B/2,D/2-tf,D/2],[cx-tw/2,cx+tw/2,-D/2+tf,D/2-tf],[cx-B/2,cx+B/2,-D/2,-D/2+tf]];
+// channel with the back of the web at x = xb; dir = +1 flanges point to +x, -1 to -x
+const cRects = (D,B,tw,tf,xb=0,dir=1) => { const m=(a,b)=>dir>0?[xb+a,xb+b]:[xb-b,xb-a]; return [[...m(0,tw),-D/2,D/2],[...m(tw,B),D/2-tf,D/2],[...m(tw,B),-D/2,-D/2+tf]]; };
+
+function rolledProps(fam, name, SEC){
+  const F=FAMS[fam]; const row=(SEC[fam]||[]).find(r=>r[0]===name); if(!row||!F) return null;
+  let s;
+  if(F.k==="I"||F.k==="C"){
+    const [nm,mass,A,D,B,tw,tf,R1,Iz,Iy,Zz,Zpz,It,Iw]=row, hw=D-2*tf;
+    s={name:nm, kind:F.k, welded:false, mass, A:A*100, D, B, tw, tf, R1:R1||0, Iz:Iz*1e4, Iy:Iy*1e4, Zez:Zz*1e3, Zpz:Zpz*1e3, It:It?It*1e4:null, Iw:Iw?Iw*1e6:null, src:"IS 808 section table"};
+    if(!s.It){ s.It=(2*B*tf**3+hw*tw**3)/3; s.itCalc=true; }
+    if(!s.Iw){ const h=D-tf; s.Iw = F.k==="I" ? s.Iy*h*h/4 : tf*B**3*h*h/12*(3*B*tf+2*h*tw)/(6*B*tf+h*tw); s.iwCalc=true; }
+    const R = F.k==="I" ? iRects(D,B,tw,tf) : cRects(D,B,tw,tf,0,1), rp=rprops(R), k=s.A/rp.A;
+    s.cy = F.k==="C" ? rp.xc : B/2;
+    s.Zey = F.k==="C" ? s.Iy/(B-s.cy) : s.Iy/(B/2);
+    s.Zpy = zp(R,"y")*k; s.zpyCalc=true;
+  } else if(F.k==="R"){
+    const [nm,mass,A,D,B,t,Iz,Iy,Zz,Zpz]=row, Am=(B-t)*(D-t), p=2*((B-t)+(D-t));
+    s={name:nm, kind:"R", welded:false, mass, A:A*100, D, B, tw:t, tf:t, t, R1:t, Iz:Iz*1e4, Iy:Iy*1e4, Zez:Zz*1e3, Zpz:Zpz*1e3, It:4*Am*Am*t/p, Iw:0, src:"IS 4923:1997 section table", itCalc:true};
+    s.Zey=s.Iy/(B/2); s.Zpy=(D*B*B-(D-2*t)*(B-2*t)**2)/4; s.zpyCalc=true;
+  } else {
+    const [nm,mass,A,D,t,I,Z]=row;
+    s={name:nm, kind:"O", welded:false, mass, A:A*100, D, B:D, tw:t, tf:t, t, R1:0, Iz:I*1e4, Iy:I*1e4, Zez:Z*1e3, Zpz:(D**3-(D-2*t)**3)/6, It:2*I*1e4, Iw:0, src:"IS 1161:2014 sizes"};
+    s.Zey=s.Zez; s.Zpy=s.Zpz;
+  }
+  s.fam=fam; s.famT=F.t;
+  return s;
+}
+// centroid offset e of each component from the built-up centroid, and the gap that gives it
+function buGeom(c, arr, gap){
+  const W=gap+2*c.B;
+  let e, xb;
+  if(c.kind==="I") e=gap/2+c.B/2;
+  else if(arr==="toe") e=gap/2+c.B-c.cy;
+  else e=gap/2+c.cy;
+  return {W, e};
+}
+function gapFor(c, arr, ratio){ // gap so that ry = ratio x rz
+  const e2=(ratio*ratio*c.Iz-c.Iy)/c.A; if(!(e2>0)) return 0;
+  const e=Math.sqrt(e2);
+  if(c.kind==="I") return 2*e-c.B;
+  if(arr==="toe") return 2*(e-c.B+c.cy);
+  return 2*(e-c.cy);
+}
+function buRects(c, arr, gap){
+  if(c.kind==="I") { const g=buGeom(c,arr,gap); return [...iRects(c.D,c.B,c.tw,c.tf,-g.e),...iRects(c.D,c.B,c.tw,c.tf,g.e)]; }
+  if(arr==="toe"){ const xo=gap/2+c.B; return [...cRects(c.D,c.B,c.tw,c.tf,-xo,1),...cRects(c.D,c.B,c.tw,c.tf,xo,-1)]; }
+  return [...cRects(c.D,c.B,c.tw,c.tf,-gap/2,-1),...cRects(c.D,c.B,c.tw,c.tf,gap/2,1)];
+}
+
+function secProps(v, SEC){
+  const F=FAMS[v.fam]; if(!F) return null;
+  let s;
+  if(v.fam==="WELD"){
+    const D=v.wD, B=v.wB, tw=v.wtw, tf=v.wtf, hw=D-2*tf;
+    if(!(D>0&&B>0&&tw>0&&tf>0&&hw>0&&tw<=B)) return null;
+    const R=iRects(D,B,tw,tf), rp=rprops(R);
+    s={name:`Welded I ${f(D,0)} × ${f(B,0)}, web ${f(tw,0)}, flanges ${f(tf,0)}`, kind:"I", welded:true, mass:rp.A*7850e-6, A:rp.A, D, B, tw, tf, R1:0, Iz:rp.Iz, Iy:rp.Iy,
+      Zez:2*rp.Iz/D, Zpz:zp(R,"z"), Zey:2*rp.Iy/B, Zpy:zp(R,"y"), It:(2*B*tf**3+hw*tw**3)/3, Iw:rp.Iy*(D-tf)**2/4, src:"computed from the plate sizes", itCalc:true, iwCalc:true};
+    s.fam="WELD"; s.famT=F.t;
+  } else if(v.fam==="BUILT"){
+    const c=rolledProps(v.bComp, v.bSec, SEC); if(!c || !(v.gap>=0)) return null;
+    const arr = c.kind==="I" ? "side" : (v.bArr==="toe"?"toe":"btb"), g=buGeom(c,arr,v.gap);
+    const Iy=2*(c.Iy+c.A*g.e*g.e);
+    s={name:`2 × ${c.name}, ${arr==="side"?"side by side":arr==="toe"?"toes in":"back to back"}, gap ${f(v.gap,0)} mm`, kind:"BU", welded:false, comp:c, arr, gap:v.gap, e:g.e, W:g.W,
+      mass:2*c.mass, A:2*c.A, D:c.D, B:g.W, tw:c.tw, tf:c.tf, R1:c.R1, Iz:2*c.Iz, Iy, Zez:2*c.Zez, Zpz:2*c.Zpz, Zey:Iy/(g.W/2), Zpy:2*c.A*g.e,
+      It:2*c.It, Iw:Iy*(c.D-c.tf)**2/4, iwCalc:true, src:`${c.src}; built-up properties by parallel axes`};
+    s.fam="BUILT"; s.famT=F.t;
+  } else s=rolledProps(v.fam, v.sec, SEC);
+  if(!s) return null;
+  s.rz=Math.sqrt(s.Iz/s.A); s.ry=Math.sqrt(s.Iy/s.A);
+  return s;
+}
+
+// ---------- classification for compression with or without bending (Table 2) ----------
+function classify(sp, fy, P, hasM){
+  const eps=Math.sqrt(250/fy), r=Math.max(0,(P*1e3/sp.A)/(fy/GM0)), lines=[];
+  const pick=(x,l)=>x<=l[0]?0:x<=l[1]?1:x<=l[2]?2:3;
+  let c;
+  if(sp.kind==="O"){
+    const dt=sp.D/sp.t, la=88*eps*eps;
+    if(hasM){ const l=[42,52,146].map(k=>k*eps*eps); c=pick(dt,l); if(dt>la) c=3;
+      lines.push(`Tube D/t = ${f(dt,2)}; bending limits 42ε² = ${f(l[0],1)}, 52ε² = ${f(l[1],1)}, 146ε² = ${f(l[2],1)}; axial limit 88ε² = ${f(la,1)} → ${CLS[c]}`); }
+    else { c = dt<=la?2:3; lines.push(`Tube in axial compression, D/t = ${f(dt,2)}; limit 88ε² = ${f(la,1)} → ${c===2?"not slender":"slender"}`); }
+    return {c, eps, r, lines};
+  }
+  const cs = sp.kind==="BU" ? sp.comp : sp, isC = cs.kind==="C";
+  let b, kf, fl;
+  if(sp.kind==="R"){ b=sp.B-3*sp.t; kf=[29.3,33.5,42]; fl=`Compression flange (internal), b = B − 3t = ${f(b,1)} mm`; }
+  else { b = isC ? cs.B : cs.B/2; kf = sp.welded ? [8.4,9.4,13.6] : [9.4,10.5,15.7]; fl=`Flange outstand (${sp.welded?"welded":"rolled"}${sp.kind==="BU"?", each component":""}), b = ${isC?"b<sub>f</sub>":"b<sub>f</sub>/2"} = ${f(b,1)} mm`; }
+  const t=sp.kind==="R"?sp.t:cs.tf, rf=b/t, lf=kf.map(k=>k*eps), cf=pick(rf,lf);
+  lines.push(`${fl}; b/t = ${f(rf,2)}; limits ${kf[0]}ε = ${f(lf[0],2)}, ${kf[1]}ε = ${f(lf[1],2)}, ${kf[2]}ε = ${f(lf[2],2)} → ${CLS[cf]}`);
+  const d = sp.kind==="R" ? sp.D-3*sp.t : (sp.welded ? sp.D-2*sp.tf : cs.D-2*(cs.tf+cs.R1)), tw=sp.kind==="R"?sp.t:cs.tw, rw=d/tw;
+  let cw, wl;
+  if(!hasM){ const l=42*eps; cw = rw<=l?2:3; wl=`Web in axial compression, d/t<sub>w</sub> = ${f(d,1)}/${f(tw,1)} = ${f(rw,2)}; limit 42ε = ${f(l,2)} → ${cw===2?"not slender":"slender"}`; }
+  else {
+    const m=42*eps, l=[Math.max(84*eps/(1+r),m), Math.max(105*eps/(1+1.5*r),m), Math.max(126*eps/(1+2*r),m)];
+    cw=pick(rw,l); wl=`Web with axial force and bending, r<sub>1</sub> = r<sub>2</sub> = (P/A)/(f<sub>y</sub>/γ<sub>m0</sub>) = ${f3(r)}; d/t<sub>w</sub> = ${f(rw,2)}; limits 84ε/(1 + r<sub>1</sub>) = ${f(l[0],1)}, 105ε/(1 + 1.5r<sub>1</sub>) = ${f(l[1],1)}, 126ε/(1 + 2r<sub>2</sub>) = ${f(l[2],1)} (each ≥ 42ε) → ${CLS[cw]}`;
+  }
+  lines.push(wl);
+  c = hasM ? Math.max(cf,cw) : (Math.max(cf,cw)===3?3:2);
+  return {c, eps, r, lines};
+}
+function buckClass(sp, hollow){
+  if(sp.kind==="R"||sp.kind==="O") return hollow==="hot" ? {z:"a",y:"a",why:"hot finished hollow section"} : {z:"b",y:"b",why:"cold formed hollow section"};
+  if(sp.kind==="C") return {z:"c",y:"c",why:"channel"};
+  if(sp.kind==="BU") return {z:"c",y:"c",why:"built-up member"};
+  if(sp.welded) return sp.tf<=40 ? {z:"b",y:"c",why:"welded I-section, t<sub>f</sub> ≤ 40 mm"} : {z:"c",y:"d",why:"welded I-section, t<sub>f</sub> > 40 mm"};
+  const hb=sp.D/sp.B;
+  if(hb>1.2) return sp.tf<=40 ? {z:"a",y:"b",why:`rolled I-section, h/b<sub>f</sub> = ${f(hb,2)} > 1.2, t<sub>f</sub> ≤ 40 mm`} : {z:"b",y:"c",why:`rolled I-section, h/b<sub>f</sub> > 1.2, t<sub>f</sub> > 40 mm`};
+  return sp.tf<=100 ? {z:"b",y:"c",why:`rolled I-section, h/b<sub>f</sub> = ${f(hb,2)} ≤ 1.2, t<sub>f</sub> ≤ 100 mm`} : {z:"d",y:"d",why:"rolled I-section, t<sub>f</sub> > 100 mm"};
+}
+function fcdOf(fy, KLr, cls){
+  const a=ALPHA[cls], fcc=Math.PI**2*E_S/(KLr*KLr), ln=Math.sqrt(fy/fcc), ph=0.5*(1+a*(ln-0.2)+ln*ln);
+  const chi=Math.min(1,1/(ph+Math.sqrt(Math.max(ph*ph-ln*ln,0))));
+  return {fcc, ln, ph, chi, fcd:chi*fy/GM0, a};
+}
+const psiOf = (a,b) => { const A=Math.abs(a), B=Math.abs(b); if(Math.max(A,B)<1e-9) return 1; return A>=B ? b/a : a/b; };
+const kOf = (cond, K) => COND[cond] && COND[cond][1]!==null ? COND[cond][1] : K;
+
+function geomProblems(v){
+  const p=[];
+  if(!(v.L>0)) p.push("the column length must be positive");
+  if(!(v.Ly>0)) p.push("the unbraced length about y-y must be positive");
+  if(v.Ly>v.L+1e-9) p.push("the unbraced length about y-y cannot exceed the column length");
+  if(!(v.LLT>0)) p.push("the effective length for lateral-torsional buckling must be positive");
+  if(!(kOf(v.condZ,v.Kz)>0) || !(kOf(v.condY,v.Ky)>0)) p.push("the effective length factors must be positive");
+  (v.combos||[]).forEach((c,i)=>{
+    const n=`combination ${i+1}`;
+    if(["P","Mzt","Mzb","Myt","Myb"].some(k=>!isFinite(c[k]))) p.push(`${n} has a missing value`);
+    else if(!(c.P>0)) p.push(`${n}: the axial force must be compressive (positive)`);
+  });
+  if(!(v.combos||[]).length) p.push("add at least one load combination");
+  if(v.fam==="BUILT"){
+    if(!(v.gap>=0)) p.push("the gap between the components cannot be negative");
+    ["nBays","bdE","bdI","bt","ov","wS"].forEach(k=>{ if(!(v[k]>0)) p.push("the batten details must all be positive"); });
+    if(v.nBays%1) p.push("the number of bays must be a whole number");
+  }
+  return [...new Set(p)];
+}
+
+// ---------- design ----------
+function design(v, SEC){
+  const steps=[], checks=[]; let part="";
+  const P_ = n => { part=n; };
+  const Sx = (title, ref, lines, note) => steps.push({part,title,ref,lines:lines.filter(Boolean),note});
+  const C = (group,name,ref,demand,capacity,ok,info) => checks.push({group,name,ref,demand,capacity,ok,info});
+  const sp=secProps(v,SEC), G=GRADES[v.grade];
+  const probs=geomProblems(v), inRows=inputRows(v,sp);
+  if(!sp || probs.length) return {v,sp,steps,checks,early:true,probs:probs.length?probs:["the section is not defined"],inRows,allOk:false,failed:[],sumRows:[],outcomeRow:["Outcome","FAIL","Fix the inputs","FAIL"],actions:[],combos:[]};
+  const kind=sp.kind, BU=kind==="BU", cs=BU?sp.comp:sp;
+
+  // ===== A =====
+  P_("A. Section, material and classification");
+  const dimLine = kind==="O" ? `D = ${f(sp.D,1)} mm, t = ${f(sp.t,1)} mm` : kind==="R" ? `D = ${f(sp.D,1)} mm, B = ${f(sp.B,1)} mm, t = ${f(sp.t,1)} mm`
+    : `D = ${f(cs.D,1)} mm, b<sub>f</sub> = ${f(cs.B,1)} mm, t<sub>w</sub> = ${f(cs.tw,1)} mm, t<sub>f</sub> = ${f(cs.tf,1)} mm${cs.R1?`, R<sub>1</sub> = ${f(cs.R1,1)} mm`:""}`;
+  if(BU){
+    const c=sp.comp, arrT=sp.arr==="side"?"side by side with the webs parallel":sp.arr==="toe"?"with the flange toes facing each other":"back to back (webs facing each other)";
+    Sx("Built-up section", "Parallel axis theorem",
+      [`Two ${c.name} (${c.famT}) placed ${arrT}, clear gap g = ${f(sp.gap,0)} mm, overall width W = g + 2b<sub>f</sub> = <span class="r">${f(sp.W,0)} mm</span>`,
+       `One component: ${dimLine}; A = ${f(c.A,0)} mm², I<sub>z</sub> = ${f(c.Iz/1e4,1)} cm⁴, I<sub>y</sub> = ${f(c.Iy/1e4,1)} cm⁴, r<sub>min</sub> = r<sub>y</sub> = ${f(Math.sqrt(c.Iy/c.A),1)} mm${c.kind==="C"?`, centroid c<sub>y</sub> = ${f(c.cy,1)} mm from the back of the web`:""}`,
+       `Distance from the built-up centroid to each component centroid, e = <span class="r">${f(sp.e,1)} mm</span>; centroid spacing 2e = ${f(2*sp.e,1)} mm`,
+       `z-z (material axis, through both components): I<sub>z</sub> = 2 × ${f(c.Iz/1e4,1)} = <span class="r">${f(sp.Iz/1e4,1)} cm⁴</span>, r<sub>z</sub> = ${f(sp.rz,1)} mm`,
+       `y-y (free axis, between the components): I<sub>y</sub> = 2(I<sub>y1</sub> + A<sub>1</sub>e²) = 2(${f(c.Iy/1e4,1)} + ${f(c.A/100,2)} × ${f(sp.e/10,2)}²) = <span class="r">${f(sp.Iy/1e4,1)} cm⁴</span>, r<sub>y</sub> = ${f(sp.ry,1)} mm`,
+       `A = ${f(sp.A,0)} mm², mass ${f(sp.mass,2)} kg/m (battens extra); Z<sub>e,z</sub> = ${f(sp.Zez/1e3,1)} cm³, Z<sub>p,z</sub> = ${f(sp.Zpz/1e3,1)} cm³, Z<sub>e,y</sub> = I<sub>y</sub>/(W/2) = ${f(sp.Zey/1e3,1)} cm³, Z<sub>p,y</sub> = 2A<sub>1</sub>e = ${f(sp.Zpy/1e3,1)} cm³`],
+      c.kind==="C" ? "The channel centroid is found from an idealized shape with parallel flanges of mean thickness. It is within a few millimetres of the tabulated value." : "");
+  } else {
+    Sx("Section properties", sp.src,
+      [`${sp.name} (${sp.famT}); mass ${f(sp.mass,2)} kg/m; A = ${f(sp.A,0)} mm²`, dimLine,
+       `I<sub>z</sub> = ${f(sp.Iz/1e4,1)} cm⁴, I<sub>y</sub> = ${f(sp.Iy/1e4,1)} cm⁴, r<sub>z</sub> = ${f(sp.rz,1)} mm, r<sub>y</sub> = ${f(sp.ry,1)} mm`,
+       `Z<sub>e,z</sub> = ${f(sp.Zez/1e3,1)} cm³, Z<sub>p,z</sub> = ${f(sp.Zpz/1e3,1)} cm³, Z<sub>e,y</sub> = ${f(sp.Zey/1e3,1)} cm³, Z<sub>p,y</sub> = ${f(sp.Zpy/1e3,1)} cm³${sp.zpyCalc?" (y-y moduli computed from the plate idealization)":""}`,
+       kind==="O"?"":`I<sub>t</sub> = ${f(sp.It/1e4,2)} cm⁴, I<sub>w</sub> = ${f(sp.Iw/1e6,0)} cm⁶${sp.itCalc||sp.iwCalc?" (computed where marked in the table)":""}`]);
+  }
+  const tmax=Math.max(cs.tf,cs.tw), fy=fyOf(G,tmax), fu=G.fu, eps=Math.sqrt(250/fy);
+  Sx("Material", "IS 2062:2011 Table 2, IS 800 2.2.4, Table 5",
+    [`Grade ${G.n}; thickest element ${f(tmax,1)} mm, so f<sub>y</sub> = <span class="r">${fy} MPa</span>, f<sub>u</sub> = ${fu} MPa`,
+     `E = 2.0 × 10⁵ MPa, G = 0.769 × 10⁵ MPa, γ<sub>m0</sub> = 1.10`, `ε = √(250/f<sub>y</sub>) = <span class="r">${f3(eps)}</span>`]);
+
+  // ===== B: actions =====
+  P_("B. Design actions");
+  const Psw = v.sw==="yes" ? v.gSW*sp.mass*9.81*v.L/1000 : 0;
+  Sx("Load combinations", "5.3, Table 4",
+    [`${v.combos.length} factored combination${v.combos.length>1?"s":""} entered; compression positive. End moments with the same sign bend the column in single curvature.`,
+     v.sw==="yes" ? `Self weight of the column: ${f(v.gSW,2)} × ${f(sp.mass,2)} kg/m × 9.81 × ${f(v.L,3)} m/1000 = <span class="r">${f(Psw,2)} kN</span>, added to every combination (value at the base)` : "Self weight of the column not included",
+     v.sway==="yes" ? "Frame is free to sway: C<sub>my</sub> = C<sub>mz</sub> = 0.9 (Table 18)" : "Frame is braced against sway: C<sub>m</sub> = 0.6 + 0.4ψ ≥ 0.4 from the end moment ratio ψ (Table 18)"]);
+
+  // ===== C: slenderness and axial strength =====
+  P_("C. Slenderness and compressive strength");
+  const Kz=kOf(v.condZ,v.Kz), Ky=kOf(v.condY,v.Ky), Lez=Kz*v.L*1000, Ley=Ky*v.Ly*1000;
+  const lz0=Lez/sp.rz, ly0=Ley/sp.ry, bf_=BU?1.1:1, lz=bf_*lz0, ly=bf_*ly0;
+  Sx("Effective lengths and slenderness", "7.2.2, Table 11" + (BU?", 7.7.1.4":""),
+    [`z-z: ${COND[v.condZ][0].toLowerCase()}, K = ${f(Kz,2)}; KL = ${f(Kz,2)} × ${f(v.L,3)} = ${f(Lez/1000,3)} m; KL/r<sub>z</sub> = ${f(Lez,0)}/${f(sp.rz,1)} = <span class="r">${f(lz0,1)}</span>`,
+     `y-y: ${COND[v.condY][0].toLowerCase()}, K = ${f(Ky,2)}; unbraced length ${f(v.Ly,3)} m; KL = ${f(Ley/1000,3)} m; KL/r<sub>y</sub> = ${f(Ley,0)}/${f(sp.ry,1)} = <span class="r">${f(ly0,1)}</span>`,
+     BU ? `Battened column: effective slenderness = 1.1 × actual, to allow for shear deformation: z-z <span class="r">${f(lz,1)}</span>, y-y <span class="r">${f(ly,1)}</span>; the larger, ${f(Math.max(lz,ly),1)}, governs` : ""]);
+  const lmax=Math.max(lz,ly);
+  C("Slenderness and axial strength",`Slenderness, KL/r ≤ ${v.slim}`,"3.8, Table 3",`≤ ${v.slim}`,f(lmax,1), lmax<=v.slim);
+  const bc=buckClass(sp,v.hollow), FZ=fcdOf(fy,lz,bc.z), FY=fcdOf(fy,ly,bc.y);
+  const Pdz=sp.A*FZ.fcd/1e3, Pdy=sp.A*FY.fcd/1e3, Pd=Math.min(Pdz,Pdy);
+  const fl = (F,ax,lam) => `${ax}: buckling class ${ax==="z-z"?bc.z:bc.y}, α = ${F.a}; f<sub>cc</sub> = π²E/(KL/r)² = ${f(F.fcc,1)} MPa; λ = √(f<sub>y</sub>/f<sub>cc</sub>) = ${f3(F.ln)}; φ = ${f3(F.ph)}; χ = ${f3(F.chi)}; f<sub>cd</sub> = <span class="r">${f(F.fcd,1)} MPa</span>`;
+  Sx("Design compressive strength", "7.1.2, 7.1.2.1, Table 10",
+    [`Buckling class from Table 10 for a ${bc.why}: z-z class ${bc.z}, y-y class ${bc.y}`, fl(FZ,"z-z",lz), fl(FY,"y-y",ly),
+     `φ = 0.5[1 + α(λ − 0.2) + λ²], f<sub>cd</sub> = (f<sub>y</sub>/γ<sub>m0</sub>)/[φ + √(φ² − λ²)] ≤ f<sub>y</sub>/γ<sub>m0</sub>`,
+     `P<sub>dz</sub> = A f<sub>cd,z</sub> = ${f(sp.A,0)} × ${f(FZ.fcd,1)}/10³ = <span class="r">${f(Pdz,1)} kN</span>; P<sub>dy</sub> = ${f(sp.A,0)} × ${f(FY.fcd,1)}/10³ = <span class="r">${f(Pdy,1)} kN</span>`,
+     `P<sub>d</sub> = <span class="r">${f(Pd,1)} kN</span> (gross area; the section is checked for slenderness in each combination)`],
+    kind==="C" ? "A single channel is checked for flexural buckling only. Torsional and flexural-torsional buckling of an unsymmetric section is not covered." : "");
+
+  // ===== per combination =====
+  const sway=v.sway==="yes";
+  const ltbSusceptible = (kind==="I"||kind==="C"||(kind==="R"&&sp.Iy<sp.Iz*0.999)||(BU&&sp.Iy<sp.Iz*0.999));
+  let Avz, Avy, avzT, avyT; // Avz: area for shear from Mz (along y, parallel to web); Avy: shear from My
+  if(kind==="O"){ Avz=Avy=2*sp.A/Math.PI; avzT=avyT=`A<sub>v</sub> = 2A/π = ${f(Avz,0)} mm²`; }
+  else if(kind==="R"){ Avz=sp.A*sp.D/(sp.B+sp.D); Avy=sp.A*sp.B/(sp.B+sp.D); avzT=`A<sub>v</sub> = AD/(B + D) = ${f(Avz,0)} mm²`; avyT=`A<sub>v</sub> = AB/(B + D) = ${f(Avy,0)} mm²`; }
+  else { const n=BU?2:1; Avz=n*(sp.welded?(sp.D-2*sp.tf):cs.D)*cs.tw; Avy=n*2*cs.B*cs.tf; avzT=`A<sub>v</sub> = ${n>1?"2 × ":""}${sp.welded?"d":"D"}t<sub>w</sub> = ${f(Avz,0)} mm²`; avyT=`A<sub>v</sub> = ${n>1?"2 × ":""}2b<sub>f</sub>t<sub>f</sub> = ${f(Avy,0)} mm²`; }
+  const Vdz=Avz*fy/Math.sqrt(3)/GM0/1e3, Vdy=Avy*fy/Math.sqrt(3)/GM0/1e3;
+  const Nd=sp.A*fy/GM0/1e3;
+  const combos=v.combos.map((c0,i)=>{
+    const c={...c0, i, P:c0.P+Psw, Pin:c0.P};
+    c.Mz=Math.max(Math.abs(c.Mzt),Math.abs(c.Mzb)); c.My=Math.max(Math.abs(c.Myt),Math.abs(c.Myb));
+    c.hasM=c.Mz>1e-9||c.My>1e-9;
+    c.cl=classify(sp,fy,c.P,c.hasM);
+    const cl=c.cl.c, bz = cl<=1?1:sp.Zez/sp.Zpz, by = cl<=1?1:sp.Zey/sp.Zpy;
+    c.bz=bz; c.by=by;
+    c.Mdz=Math.min(bz*sp.Zpz, 1.2*sp.Zez)*fy/GM0/1e6; c.Mdy=Math.min(by*sp.Zpy, 1.2*sp.Zey)*fy/GM0/1e6;
+    c.psiZ=psiOf(c.Mzt,c.Mzb); c.psiY=psiOf(c.Myt,c.Myb);
+    c.Cmz = sway?0.9:Math.max(0.4,0.6+0.4*c.psiZ); c.Cmy = sway?0.9:Math.max(0.4,0.6+0.4*c.psiY); c.CmLT=Math.max(0.4,0.6+0.4*c.psiZ);
+    // LTB
+    c.ltb = ltbSusceptible && c.Mz>1e-9;
+    c.MdzLT=c.Mdz; c.lamLT=0;
+    if(c.ltb){
+      c.C1=c1Of(c.psiZ); const Lm=v.LLT*1000, a=Math.PI**2*E_S*sp.Iy/(Lm*Lm);
+      c.Mcr=c.C1*Math.sqrt(a*(G_S*sp.It+Math.PI**2*E_S*sp.Iw/(Lm*Lm)));
+      c.lamLT=Math.sqrt(bz*sp.Zpz*fy/c.Mcr); c.aLT=sp.welded?0.49:0.21;
+      const ph=0.5*(1+c.aLT*(c.lamLT-0.2)+c.lamLT**2); c.phLT=ph; c.chiLT=Math.min(1,1/(ph+Math.sqrt(ph*ph-c.lamLT**2)));
+      c.MdL=bz*sp.Zpz*c.chiLT*fy/GM0/1e6;
+      c.MdzLT = c.lamLT<=0.4 ? c.Mdz : Math.min(c.Mdz,c.MdL);
+    }
+    // shear from end moments
+    c.Vz=Math.abs(c.Mzt-c.Mzb)/v.L; c.Vy=Math.abs(c.Myt-c.Myb)/v.L;
+    c.hsZ=c.Vz>0.6*Vdz; c.hsY=c.Vy>0.6*Vdy;
+    const Mdzs = c.hsZ ? sp.Zez*fy/GM0/1e6 : c.Mdz, Mdys = c.hsY ? sp.Zey*fy/GM0/1e6 : c.Mdy;
+    c.Mdzs=Mdzs; c.Mdys=Mdys;
+    // section strength 9.3.1
+    const n=c.P/Nd; c.nr=n;
+    if(cl<=1 && !c.hsZ && !c.hsY && (kind==="I"||kind==="R"||kind==="O")){
+      c.secM="9.3.1.1";
+      if(kind==="O"){ c.Mndz=Math.min(c.Mdz,1.04*c.Mdz*(1-Math.pow(n,1.7))); c.Mndy=Math.min(c.Mdy,1.04*c.Mdy*(1-Math.pow(n,1.7))); c.a1=c.a2=2; c.mndT="M<sub>nd</sub> = 1.04M<sub>d</sub>(1 − n<sup>1.7</sup>) ≤ M<sub>d</sub>; α<sub>1</sub> = α<sub>2</sub> = 2"; }
+      else if(kind==="R"){ const aw=Math.min((sp.A-2*sp.B*sp.t)/sp.A,0.5), af=Math.min((sp.A-2*sp.D*sp.t)/sp.A,0.5); c.Mndz=Math.min(c.Mdz,c.Mdz*(1-n)/(1-0.5*aw)); c.Mndy=Math.min(c.Mdy,c.Mdy*(1-n)/(1-0.5*af)); c.a1=c.a2=Math.min(6,1.66/(1-1.13*n*n)); c.mndT=`a<sub>w</sub> = ${f3(aw)}, a<sub>f</sub> = ${f3(af)}; M<sub>ndz</sub> = M<sub>dz</sub>(1 − n)/(1 − 0.5a<sub>w</sub>), M<sub>ndy</sub> = M<sub>dy</sub>(1 − n)/(1 − 0.5a<sub>f</sub>); α = 1.66/(1 − 1.13n²) = ${f3(c.a1)}`; }
+      else if(sp.welded){ const a=Math.min((sp.A-2*sp.B*sp.tf)/sp.A,0.5); c.Mndz=Math.min(c.Mdz,c.Mdz*(1-n)/(1-0.5*a)); c.Mndy = n<=a ? c.Mdy : c.Mdy*(1-((n-a)/(1-a))**2); c.a1=Math.max(1,5*n); c.a2=2; c.mndT=`a = (A − 2bt<sub>f</sub>)/A = ${f3(a)}; M<sub>ndz</sub> = M<sub>dz</sub>(1 − n)/(1 − 0.5a) ≤ M<sub>dz</sub>; M<sub>ndy</sub> = ${n<=a?"M<sub>dy</sub> (n ≤ a)":"M<sub>dy</sub>[1 − ((n − a)/(1 − a))²]"}; α<sub>1</sub> = 5n ≥ 1, α<sub>2</sub> = 2`; }
+      else { c.Mndz=Math.min(c.Mdz,1.11*c.Mdz*(1-n)); c.Mndy = n<=0.2 ? c.Mdy : Math.min(c.Mdy,1.56*c.Mdy*(1-n)*(n+0.6)); c.a1=Math.max(1,5*n); c.a2=2; c.mndT=`Rolled I: M<sub>ndz</sub> = 1.11M<sub>dz</sub>(1 − n) ≤ M<sub>dz</sub>; M<sub>ndy</sub> = ${n<=0.2?"M<sub>dy</sub> (n ≤ 0.2)":"1.56M<sub>dy</sub>(1 − n)(n + 0.6)"}; α<sub>1</sub> = 5n ≥ 1, α<sub>2</sub> = 2`; }
+      c.Usec = n>=1 ? n : Math.pow(c.My/Math.max(c.Mndy,1e-9),c.a1)+Math.pow(c.Mz/Math.max(c.Mndz,1e-9),c.a2);
+    } else {
+      c.secM="9.3.1.3";
+      c.Usec = n + c.Mz/Mdzs + c.My/Mdys;
+    }
+    // member buckling 9.3.2.2
+    c.ny=c.P/Pdy; c.nz=c.P/Pdz;
+    c.Ky=Math.min(1+(FY.ln-0.2)*c.ny, 1+0.8*c.ny); c.Kz=Math.min(1+(FZ.ln-0.2)*c.nz, 1+0.8*c.nz);
+    c.KLT = c.ltb ? Math.max(1-0.1*c.lamLT*c.ny/(c.CmLT-0.25), 1-0.1*c.ny/(c.CmLT-0.25)) : 1;
+    c.eq1 = c.ny + c.Ky*c.Cmy*c.My/c.Mdy + c.KLT*c.Mz/c.MdzLT;
+    c.eq2 = c.nz + 0.6*c.Ky*c.Cmy*c.My/c.Mdy + c.Kz*c.Cmz*c.Mz/c.MdzLT;
+    c.uAx=c.P/Pd; c.uSh=Math.max(c.Vz/Vdz, c.Vy/Vdy);
+    c.u=Math.max(c.uAx, c.Usec, c.eq1, c.eq2, c.uSh);
+    return c;
+  });
+  const gv = combos.reduce((a,b)=>b.u>a.u?b:a);
+  const cname = c => `Combination ${c.i+1}${c.n?` (${c.n})`:""}`;
+
+  P_("B. Design actions");
+  Sx("Factored actions in each combination", "Statics",
+    combos.map(c=>`${cname(c)}: P = ${f(c.Pin,1)}${Psw?` + ${f(Psw,1)}`:""} = <span class="r">${f(c.P,1)} kN</span>; M<sub>z</sub> top/bottom = ${sg(c.Mzt,1)}/${sg(c.Mzb,1)} kN·m (ψ<sub>z</sub> = ${f(c.psiZ,2)}); M<sub>y</sub> top/bottom = ${sg(c.Myt,1)}/${sg(c.Myb,1)} kN·m (ψ<sub>y</sub> = ${f(c.psiY,2)}); end shears V = |M<sub>top</sub> − M<sub>bot</sub>|/L: ${f(c.Vz,1)} kN (from M<sub>z</sub>), ${f(c.Vy,1)} kN (from M<sub>y</sub>)`),
+    "With no load along the height, the largest moment about each axis is at one end and the shear is constant.");
+  // move "B" steps next to their part: re-sort steps by part letter
+  P_("A. Section, material and classification");
+  Sx("Section classification", "3.7.2, Table 2",
+    [...gv.cl.lines.map(l=>`${cname(gv)} (governing): ${l}`), `Section class for the governing combination = <span class="r">${CLS[gv.cl.c]}</span>${gv.hasM?`; β<sub>b,z</sub> = ${f3(gv.bz)}, β<sub>b,y</sub> = ${f3(gv.by)}`:" (axial compression only)"}`,
+     ...combos.filter(c=>c!==gv).map(c=>`${cname(c)}: ${CLS[c.cl.c]}`)],
+    combos.some(c=>c.cl.c===3) ? "A slender section needs the effective area of 7.3.2 and is not covered by this sheet. Choose a section with thicker plates." : "");
+  combos.forEach(c=>C("Section and material",`${cname(c)}: section is not slender`,"Table 2",`Plastic, compact or semi-compact`,CLS[c.cl.c], c.cl.c<3));
+
+  P_("C. Slenderness and compressive strength");
+  combos.forEach(c=>C("Slenderness and axial strength",`${cname(c)}: axial compression`,"7.1.2",`P = ${f(c.P,1)} kN`,`P<sub>d</sub> = ${f(Pd,1)} kN`, c.P<=Pd));
+
+  // ===== D: bending =====
+  P_("D. Bending strength");
+  const g=gv;
+  if(combos.some(c=>c.hasM)){
+    const cm = g.hasM ? g : combos.find(c=>c.hasM);
+    Sx("Design bending strength of the section", "8.2.1.2",
+      [`${cname(cm)}: M<sub>dz</sub> = β<sub>b</sub>Z<sub>p,z</sub>f<sub>y</sub>/γ<sub>m0</sub> ≤ 1.2Z<sub>e,z</sub>f<sub>y</sub>/γ<sub>m0</sub> = min(${f3(cm.bz)} × ${f(sp.Zpz/1e3,1)}, 1.2 × ${f(sp.Zez/1e3,1)}) × 10³ × ${fy}/1.10/10⁶ = <span class="r">${f(cm.Mdz,2)} kN·m</span>`,
+       `M<sub>dy</sub> = min(${f3(cm.by)} × ${f(sp.Zpy/1e3,1)}, 1.2 × ${f(sp.Zey/1e3,1)}) × 10³ × ${fy}/1.10/10⁶ = <span class="r">${f(cm.Mdy,2)} kN·m</span>`]);
+    if(cm.ltb){
+      Sx("Lateral-torsional buckling about z-z", "8.2.2, Annex E",
+        [`Effective length L<sub>LT</sub> = ${f(v.LLT,3)} m; ψ<sub>z</sub> = ${f(cm.psiZ,2)}, so C<sub>1</sub> = ${f3(cm.C1)} (Table 42, K = 1, end moments)`,
+         `M<sub>cr</sub> = C<sub>1</sub>√{(π²EI<sub>y</sub>/L<sub>LT</sub>²)[GI<sub>t</sub> + π²EI<sub>w</sub>/L<sub>LT</sub>²]} = <span class="r">${f(cm.Mcr/1e6,2)} kN·m</span>`,
+         `λ<sub>LT</sub> = √(β<sub>b</sub>Z<sub>p</sub>f<sub>y</sub>/M<sub>cr</sub>) = <span class="r">${f3(cm.lamLT)}</span>; α<sub>LT</sub> = ${cm.aLT}; φ<sub>LT</sub> = ${f3(cm.phLT)}; χ<sub>LT</sub> = ${f3(cm.chiLT)}`,
+         cm.lamLT<=0.4 ? `λ<sub>LT</sub> ≤ 0.4, so no reduction: M<sub>dz</sub> = ${f(cm.Mdz,2)} kN·m` : `M<sub>dz</sub> = β<sub>b</sub>Z<sub>p</sub>χ<sub>LT</sub>f<sub>y</sub>/γ<sub>m0</sub> = <span class="r">${f(cm.MdzLT,2)} kN·m</span>`],
+        (BU?"For the built-up section, I<sub>t</sub> is the sum for the two components and I<sub>w</sub> is approximated as I<sub>y</sub>h²/4. ":"") + (kind==="C"?"For a channel the formula assumes the load acts through the shear centre.":""));
+    } else Sx("Lateral-torsional buckling about z-z", "8.2.2",
+      [kind==="O"?"Circular hollow sections do not buckle laterally.": (kind==="R"||BU) ? `I<sub>y</sub> ≥ I<sub>z</sub>, so bending about z-z is bending about the weaker axis and lateral-torsional buckling does not occur.` : "No moment about z-z, so lateral-torsional buckling does not arise."]);
+  } else Sx("Bending", "–", ["No end moments in any combination; the column carries axial force only"]);
+
+  // ===== E: shear =====
+  P_("E. Shear");
+  Sx("Shear from the end moments", "8.4.1",
+    [`Shear along the web (from M<sub>z</sub>): ${avzT}; V<sub>d</sub> = A<sub>v</sub>f<sub>y</sub>/(√3γ<sub>m0</sub>) = <span class="r">${f(Vdz,1)} kN</span>`,
+     `Shear across the flanges (from M<sub>y</sub>): ${avyT}; V<sub>d</sub> = <span class="r">${f(Vdy,1)} kN</span>`,
+     `Largest: V<sub>z</sub> = ${f(Math.max(...combos.map(c=>c.Vz)),1)} kN, V<sub>y</sub> = ${f(Math.max(...combos.map(c=>c.Vy)),1)} kN`,
+     combos.some(c=>c.hsZ||c.hsY) ? "High shear (V > 0.6V<sub>d</sub>) in some combinations: the section check there uses the elastic moment capacity Z<sub>e</sub>f<sub>y</sub>/γ<sub>m0</sub> (9.2.2, conservative)." : "V ≤ 0.6V<sub>d</sub> throughout, so the moment capacity is not reduced (9.2.2)"]);
+  if(combos.some(c=>c.Vz>0||c.Vy>0)) combos.filter(c=>c.Vz>0||c.Vy>0).forEach(c=>C("Shear",`${cname(c)}: shear`,"8.4.1",`V = ${f(Math.max(c.Vz,c.Vy),1)} kN`,`V<sub>d</sub> = ${f(c.Vz/Vdz>=c.Vy/Vdy?Vdz:Vdy,1)} kN`, c.uSh<=1));
+
+  // ===== F: combined =====
+  P_("F. Axial force with bending");
+  combos.forEach(c=>{
+    const lines=[`P = ${f(c.P,1)} kN, M<sub>z</sub> = ${f(c.Mz,2)} kN·m, M<sub>y</sub> = ${f(c.My,2)} kN·m; class ${CLS[c.cl.c]}`,
+      `n = P/N<sub>d</sub>, N<sub>d</sub> = Af<sub>y</sub>/γ<sub>m0</sub> = ${f(Nd,1)} kN; n = <span class="r">${f3(c.nr)}</span>`];
+    if(c.secM==="9.3.1.1") lines.push(c.mndT, `M<sub>ndz</sub> = ${f(c.Mndz,2)} kN·m, M<sub>ndy</sub> = ${f(c.Mndy,2)} kN·m`, `(M<sub>y</sub>/M<sub>ndy</sub>)<sup>α1</sup> + (M<sub>z</sub>/M<sub>ndz</sub>)<sup>α2</sup> = (${f3(c.My/c.Mndy)})<sup>${f(c.a1,2)}</sup> + (${f3(c.Mz/c.Mndz)})<sup>${f(c.a2,2)}</sup> = <span class="r">${f3(c.Usec)}</span> ≤ 1`);
+    else lines.push(`N/N<sub>d</sub> + M<sub>z</sub>/M<sub>dz</sub> + M<sub>y</sub>/M<sub>dy</sub> = ${f3(c.nr)} + ${f(c.Mz,2)}/${f(c.Mdzs,2)} + ${f(c.My,2)}/${f(c.Mdys,2)} = <span class="r">${f3(c.Usec)}</span> ≤ 1`);
+    lines.push(`Member buckling: n<sub>y</sub> = P/P<sub>dy</sub> = ${f3(c.ny)}, n<sub>z</sub> = P/P<sub>dz</sub> = ${f3(c.nz)}; K<sub>y</sub> = 1 + (λ<sub>y</sub> − 0.2)n<sub>y</sub> ≤ 1 + 0.8n<sub>y</sub> = ${f3(c.Ky)}; K<sub>z</sub> = ${f3(c.Kz)}; C<sub>my</sub> = ${f3(c.Cmy)}, C<sub>mz</sub> = ${f3(c.Cmz)}${c.ltb?`, C<sub>mLT</sub> = ${f3(c.CmLT)}; K<sub>LT</sub> = 1 − 0.1λ<sub>LT</sub>n<sub>y</sub>/(C<sub>mLT</sub> − 0.25) = ${f3(c.KLT)}`:`; K<sub>LT</sub> = 1 (no lateral-torsional buckling)`}`,
+      `P/P<sub>dy</sub> + K<sub>y</sub>C<sub>my</sub>M<sub>y</sub>/M<sub>dy</sub> + K<sub>LT</sub>M<sub>z</sub>/M<sub>dz</sub> = ${f3(c.ny)} + ${f3(c.Ky*c.Cmy*c.My/c.Mdy)} + ${f3(c.KLT*c.Mz/c.MdzLT)} = <span class="r">${f3(c.eq1)}</span>`,
+      `P/P<sub>dz</sub> + 0.6K<sub>y</sub>C<sub>my</sub>M<sub>y</sub>/M<sub>dy</sub> + K<sub>z</sub>C<sub>mz</sub>M<sub>z</sub>/M<sub>dz</sub> = ${f3(c.nz)} + ${f3(0.6*c.Ky*c.Cmy*c.My/c.Mdy)} + ${f3(c.Kz*c.Cmz*c.Mz/c.MdzLT)} = <span class="r">${f3(c.eq2)}</span>`,
+      c.ltb ? `M<sub>dz</sub> here includes lateral-torsional buckling: ${f(c.MdzLT,2)} kN·m` : "");
+    Sx(`${cname(c)}${c===gv?", governing":""}`, `9.3.1, 9.3.2.2${c.secM==="9.3.1.1"?", Table 17":""}`, lines,
+      c.secM==="9.3.1.3" && c.hasM && c.cl.c<=1 ? (kind==="C"||BU ? "No reduced moment formula is given for channels or built-up sections, so the linear interaction of 9.3.1.3 is used." : "High shear: the linear interaction with elastic moment capacities is used.") : "");
+    if(c.hasM){
+      C("Axial force with bending",`${cname(c)}: section strength`,c.secM,"≤ 1.0",f3(c.Usec), c.Usec<=1);
+      C("Axial force with bending",`${cname(c)}: member buckling, minor axis equation`,"9.3.2.2","≤ 1.0",f3(c.eq1), c.eq1<=1);
+      C("Axial force with bending",`${cname(c)}: member buckling, major axis equation`,"9.3.2.2","≤ 1.0",f3(c.eq2), c.eq2<=1);
+    }
+  });
+
+  // ===== G: battens =====
+  let bat=null;
+  if(BU){
+    P_("G. Battens");
+    const c=sp.comp, rc=Math.sqrt(c.Iy/c.A), Cs=v.L*1000/v.nBays, N=2, dc=2*sp.e, W=sp.W, ov=Math.min(v.ov,c.B);
+    bat={Cs, dc, W, ov, rc};
+    Sx("Layout", "7.7.1.1, 7.7.1.3",
+      [`${v.nBays} equal bays over L = ${f(v.L,3)} m, so the battens are at C = <span class="r">${f(Cs,0)} mm</span> centre to centre, on both faces (N = 2 planes)`,
+       `Batten plates ${f(v.bt,0)} mm thick, ${f(W,0)} mm long; end battens ${f(v.bdE,0)} mm deep, intermediate battens ${f(v.bdI,0)} mm deep; lap on each component ${f(ov,0)} mm`,
+       `r<sub>y</sub> (about the axis perpendicular to the battens) = ${f(sp.ry,1)} mm; r<sub>z</sub> (about the axis parallel to them) = ${f(sp.rz,1)} mm`]);
+    C("Battens","Number of bays ≥ 3","7.7.1.3","≥ 3",String(v.nBays), v.nBays>=3);
+    C("Battens","r<sub>y</sub> ≥ r<sub>z</sub> (preferred where practicable)","7.7.1.1",`≥ ${f(sp.rz,1)} mm`,`${f(sp.ry,1)} mm`, sp.ry>=sp.rz-1e-9, sp.ry<sp.rz-1e-9);
+    if(combos.some(c=>c.My>1e-9)) C("Battens","Moment in the plane of the battens","7.7.1.2","Exact stability analysis or tests","M<sub>y</sub> present", false, true);
+    const lc=Cs/rc, lcl=Math.min(50,0.7*lz0);
+    Sx("Spacing of battens", "7.7.3",
+      [`Slenderness of one component between battens = C/r<sub>min</sub> = ${f(Cs,0)}/${f(rc,1)} = <span class="r">${f(lc,1)}</span>`,
+       `Limit: not more than 50, nor more than 0.7 × slenderness of the whole member about z-z (axis parallel to the battens) = 0.7 × ${f(lz0,1)} = ${f(0.7*lz0,1)}; limit = <span class="r">${f(lcl,1)}</span>`]);
+    C("Battens","Component slenderness between battens","7.7.3",`≤ ${f(lcl,1)}`,f(lc,1), lc<=lcl);
+    // forces
+    const Vt=Math.max(...combos.map(c=>0.025*c.P+c.Vy)), gvt=combos.reduce((a,b)=>0.025*b.P+b.Vy>0.025*a.P+a.Vy?b:a);
+    const fyb=fyOf(G,v.bt), fuw=Math.min(fu,410), fwd=fuw/(Math.sqrt(3)*GMW), inner=W-2*ov;
+    const one = (d,lab) => {
+      const xb=ov*ov/(2*ov+d), S=W-2*xb, Vb=Vt*Cs/(N*S), M=Vt*Cs/(2*N); // kN, kN·mm
+      const tau=Vb*1e3/(v.bt*d), sig=6*M*1e3/(v.bt*d*d), taul=fyb/(Math.sqrt(3)*GM0), sigl=fyb/GM0;
+      const Lw=d+2*ov, Ix=d**3/12+2*ov*(d/2)**2, Iyw=d*xb*xb+2*(ov**3/12+ov*(ov/2-xb)**2), Ip=Ix+Iyw, Mn=M*1e3, Vn=Vb*1e3;
+      let q=0; [[-xb,d/2],[-xb,-d/2],[ov-xb,d/2],[ov-xb,-d/2]].forEach(([x,y])=>[1,-1].forEach(s=>{ const qx=-s*Mn*y/Ip, qy=s*Mn*x/Ip+Vn/Lw; q=Math.max(q,Math.hypot(qx,qy)); }));
+      const fw=q/(0.7*v.wS);
+      return {d,lab,xb,S,Vb,M,tau,sig,taul,sigl,Lw,Ip,q,fw};
+    };
+    const bE=one(v.bdE,"End batten"), bI=one(v.bdI,"Intermediate batten");
+    Object.assign(bat,{Vt,bE,bI,fwd,fyb,inner});
+    Sx("Design forces", "7.7.2.1",
+      [`Transverse shear V<sub>t</sub> = 2.5% of the axial force + any actual shear across the battens (from M<sub>y</sub>): ${cname(gvt)}: 0.025 × ${f(gvt.P,1)} + ${f(gvt.Vy,1)} = <span class="r">${f(Vt,2)} kN</span>`,
+       `Longitudinal shear per batten V<sub>b</sub> = V<sub>t</sub>C/(NS) and moment M = V<sub>t</sub>C/(2N), where S is the distance between the centroids of the weld groups`,
+       ...[bE,bI].map(b=>`${b.lab} (d = ${f(b.d,0)} mm): weld group centroid ${f(b.xb,1)} mm in from the batten end, S = W − 2x̄ = ${f(b.S,1)} mm; V<sub>b</sub> = ${f(Vt,2)} × ${f(Cs,0)}/(2 × ${f(b.S,1)}) = <span class="r">${f(b.Vb,2)} kN</span>; M = ${f(Vt,2)} × ${f(Cs,0)}/4 = <span class="r">${f(b.M/1e3,3)} kN·m</span>`)]);
+    Sx("Batten size", "7.7.2.3, 7.7.4.1",
+      [`End battens: effective depth ≥ distance between component centroids 2e = ${f(dc,1)} mm, and ≥ 2b<sub>f</sub> = ${f(2*c.B,0)} mm; provided ${f(v.bdE,0)} mm`,
+       `Intermediate battens: ≥ 0.75 × 2e = ${f(0.75*dc,1)} mm, and ≥ 2b<sub>f</sub> = ${f(2*c.B,0)} mm; provided ${f(v.bdI,0)} mm`,
+       `Thickness ≥ 1/50 of the distance between the innermost weld lines = ${f(inner,0)}/50 = ${f(inner/50,1)} mm; provided ${f(v.bt,0)} mm`,
+       `Lap on each component ≥ 4t = ${f(4*v.bt,0)} mm; provided ${f(ov,0)} mm (the weld returns along the top and bottom edges over this lap)`]);
+    C("Battens","End batten depth","7.7.2.3",`≥ ${f(Math.max(dc,2*c.B),0)} mm`,`${f(v.bdE,0)} mm`, v.bdE>=Math.max(dc,2*c.B)-0.5);
+    C("Battens","Intermediate batten depth","7.7.2.3",`≥ ${f(Math.max(0.75*dc,2*c.B),0)} mm`,`${f(v.bdI,0)} mm`, v.bdI>=Math.max(0.75*dc,2*c.B)-0.5);
+    C("Battens","Batten thickness","7.7.2.3",`≥ ${f(inner/50,1)} mm`,`${f(v.bt,0)} mm`, v.bt>=inner/50-1e-9);
+    C("Battens","Lap on each component","7.7.4.1",`≥ ${f(4*v.bt,0)} mm`,`${f(ov,0)} mm`, ov>=4*v.bt-1e-9);
+    Sx("Batten plate stresses", "7.7.2.1, 8.4.1, 8.2.1",
+      [`f<sub>y</sub> of the batten plate = ${fyb} MPa; shear limit f<sub>y</sub>/(√3γ<sub>m0</sub>) = ${f(bI.taul,1)} MPa; bending limit f<sub>y</sub>/γ<sub>m0</sub> = ${f(bI.sigl,1)} MPa`,
+       ...[bE,bI].map(b=>`${b.lab}: τ = V<sub>b</sub>/(td) = ${f(b.Vb*1e3,0)}/(${f(v.bt,0)} × ${f(b.d,0)}) = <span class="r">${f(b.tau,1)} MPa</span>; σ = 6M/(td²) = <span class="r">${f(b.sig,1)} MPa</span>`)]);
+    [bE,bI].forEach(b=>{
+      C("Battens",`${b.lab}: shear stress`,"8.4.1",`≤ ${f(b.taul,1)} MPa`,`${f(b.tau,1)} MPa`, b.tau<=b.taul);
+      C("Battens",`${b.lab}: bending stress`,"8.2.1",`≤ ${f(b.sigl,1)} MPa`,`${f(b.sig,1)} MPa`, b.sig<=b.sigl);
+    });
+    const tth=Math.max(v.bt,c.tf), smin=tth<=10?3:tth<=20?5:tth<=32?6:8, smax=v.bt-1.5;
+    Sx("Welds connecting the battens", "10.5.7, 10.5.2.3, Table 21, 7.7.4.1",
+      [`Fillet weld size s = ${f(v.wS,1)} mm, throat 0.7s = ${f(0.7*v.wS,2)} mm; weld along the batten end (length d) with returns of ${f(ov,0)} mm along the top and bottom edges`,
+       `Minimum size for the thicker part (${f(tth,1)} mm) = ${smin} mm (Table 21); maximum on the square edge of the plate = t − 1.5 = ${f(smax,1)} mm`,
+       `Weld design strength f<sub>wd</sub> = f<sub>u</sub>/(√3γ<sub>mw</sub>) = ${fuw}/(√3 × 1.25) = <span class="r">${f(fwd,1)} MPa</span> (shop weld, f<sub>u</sub> the lesser of the plate and the electrode, 410 MPa)`,
+       ...[bE,bI].map(b=>`${b.lab}: weld length ${f(b.Lw,0)} mm, polar moment ${f(b.Ip/1e6,3)} × 10⁶ mm³ per mm of throat; worst corner resultant ${f(b.q,1)} N/mm from V<sub>b</sub>/L<sub>w</sub> plus Mr/I<sub>p</sub>; stress = ${f(b.q,1)}/${f(0.7*v.wS,2)} = <span class="r">${f(b.fw,1)} MPa</span>`)],
+      "The weld on each vertical edge is the full batten depth, which meets the 7.7.4.1 rule of at least half the depth with a third at each end.");
+    C("Battens","Fillet weld size","Table 21, 10.5.8",`${smin} to ${f(smax,1)} mm`,`${f(v.wS,1)} mm`, v.wS>=smin-1e-9 && v.wS<=smax+1e-9);
+    [bE,bI].forEach(b=>C("Battens",`${b.lab}: weld stress`,"10.5.7.1.1",`≤ ${f(fwd,1)} MPa`,`${f(b.fw,1)} MPa`, b.fw<=fwd));
+    bat.smin=smin; bat.smax=smax;
+  }
+
+  // order steps by part letter so the B steps sit together
+  steps.sort((a,b)=>a.part.localeCompare(b.part));
+  const GO=["Section and material","Slenderness and axial strength","Shear","Axial force with bending","Battens"];
+  checks.sort((a,b)=>GO.indexOf(a.group)-GO.indexOf(b.group));
+
+  const failed=checks.filter(k=>!k.ok && !k.info), allOk=!failed.length;
+  const batU = bat ? Math.max(bat.bE.fw/bat.fwd, bat.bI.fw/bat.fwd, bat.bE.sig/bat.bE.sigl, bat.bI.sig/bat.bI.sigl, bat.bE.tau/bat.bE.taul, bat.bI.tau/bat.bI.taul, (bat.Cs/bat.rc)/Math.min(50,0.7*lz0)) : null;
+  const uAx=Math.max(...combos.map(c=>c.uAx)), uSec=Math.max(...combos.map(c=>c.hasM?c.Usec:0)), uMem=Math.max(...combos.map(c=>c.hasM?Math.max(c.eq1,c.eq2):0));
+  const utils=[["Axial",uAx],["Section",uSec],["Member buckling",uMem],[BU?"Battens":"Slenderness", BU?batU:lmax/v.slim]];
+  const govU=utils.reduce((a,b)=>b[1]>a[1]?b:a);
+  const st2 = ok => ok ? "PASS" : "FAIL";
+  const sumRows=[
+    {g:"Section"}, ["Section", sp.name, `${f(sp.mass,2)} kg/m, ${G.n}, f<sub>y</sub> = ${fy} MPa`, ""],
+    ["Classification", combos.map(c=>CLS[c.cl.c]).filter((x,i,a)=>a.indexOf(x)===i).join(", "), "", st2(combos.every(c=>c.cl.c<3))],
+    ["Slenderness", `KL/r = ${f(lmax,1)}`, `z-z ${f(lz,1)}, y-y ${f(ly,1)}${BU?" (× 1.1 for battens)":""}; limit ${v.slim}`, st2(lmax<=v.slim)],
+    {g:"Strength"},
+    ["Axial compression", `P = ${f(Math.max(...combos.map(c=>c.P)),1)} kN`, `P<sub>d</sub> = ${f(Pd,1)} kN; ratio ${f3(uAx)}`, st2(uAx<=1)],
+    ["Section strength, P + M", combos.some(c=>c.hasM)?`ratio ${f3(uSec)}`:"–", combos.some(c=>c.hasM)?"9.3.1":"no moments", combos.some(c=>c.hasM)?st2(uSec<=1):""],
+    ["Member buckling, P + M", combos.some(c=>c.hasM)?`ratio ${f3(uMem)}`:"–", combos.some(c=>c.hasM)?"9.3.2.2":"no moments", combos.some(c=>c.hasM)?st2(uMem<=1):""],
+    ["Shear", `V = ${f(Math.max(...combos.map(c=>Math.max(c.Vz,c.Vy))),1)} kN`, `ratio ${f3(Math.max(...combos.map(c=>c.uSh)))}`, st2(combos.every(c=>c.uSh<=1))]
+  ];
+  if(bat){
+    const bf=checks.filter(k=>k.group==="Battens" && !k.ok && !k.info);
+    sumRows.push({g:"Battens"}, ["Battens", `${v.nBays} bays at ${f(bat.Cs,0)} mm`, `${f(v.bt,0)} mm plates, ${f(v.bdE,0)}/${f(v.bdI,0)} mm deep, ${f(v.wS,0)} mm fillet welds; largest ratio ${f3(batU)}`, st2(!bf.length)]);
+  }
+  const outcomeRow=["Outcome", allOk?"Column is adequate":"Column is not adequate", `Governing: ${govU[0].toLowerCase()}, ratio ${f3(govU[1])}`, allOk?"PASS":"FAIL"];
+  const actions=failed.map(k=>[k.name,k.ref,k.demand,k.capacity,actionFor(k)]);
+  return {v,sp,fy,fu,eps,steps,checks,failed,allOk,early:false,inRows,combos,gv,Pd,Pdz,Pdy,Nd,Vdz,Vdy,lz,ly,lz0,ly0,Kz,Ky,bc,FZ,FY,bat,Psw,sumRows,outcomeRow,actions,govU,utils};
+}
+function actionFor(k){
+  const n=strip(k.name);
+  if(/slender/i.test(n) && !/component/i.test(n)) return "Use a section with thicker flanges or web.";
+  if(/^Slenderness/i.test(n)) return "Add intermediate restraints, or use a section with a larger radius of gyration.";
+  if(/axial compression/i.test(n)) return "Use a heavier section, a higher grade, or restrain the column to cut its effective length.";
+  if(/section strength/i.test(n)) return "Use a heavier section or a higher steel grade.";
+  if(/member buckling/i.test(n)) return "Use a heavier or stiffer section, or add restraints to cut the buckling and lateral-torsional lengths.";
+  if(/^.*shear$/i.test(n) && !/batten/i.test(n)) return "Use a section with a thicker web or flanges.";
+  if(/bays/i.test(n)) return "Use at least three bays.";
+  if(/component slenderness/i.test(n)) return "Add more bays (closer battens).";
+  if(/depth/i.test(n)) return "Increase the batten depth to the required value.";
+  if(/thickness/i.test(n)) return "Use a thicker batten plate.";
+  if(/lap/i.test(n)) return "Increase the lap, or use a thinner plate if the other checks allow.";
+  if(/weld size/i.test(n)) return "Change the fillet weld size to suit the plate thickness.";
+  if(/weld stress/i.test(n)) return "Use a larger weld, a deeper batten or more bays.";
+  if(/batten.*(shear|bending)/i.test(n)) return "Use a deeper or thicker batten, or more bays.";
+  return "Revise the design.";
+}
+function inputRows(v,sp){
+  const G=GRADES[v.grade]||GRADES.E250, r=[];
+  r.push(["Section", sp?sp.name:(v.sec||"–"), ""]);
+  r.push(["Steel grade", G.n, ""]);
+  if(v.fam==="SHS"||v.fam==="RHS"||v.fam==="CHS") r.push(["Hollow section", v.hollow==="hot"?"Hot finished":"Cold formed", ""]);
+  r.push(["Column length, L", f(v.L,3), "m"]);
+  r.push(["z-z end condition", COND[v.condZ][0]+` (K = ${f(kOf(v.condZ,v.Kz),2)})`, ""]);
+  r.push(["y-y end condition", COND[v.condY][0]+` (K = ${f(kOf(v.condY,v.Ky),2)})`, ""]);
+  r.push(["Unbraced length about y-y", f(v.Ly,3), "m"]);
+  r.push(["Effective length for LTB, L_LT", f(v.LLT,3), "m"]);
+  r.push(["Sway", v.sway==="yes"?"Free to sway":"Braced (non-sway)", ""]);
+  r.push(["Slenderness limit (Table 3)", String(v.slim), ""]);
+  r.push(["Self weight", v.sw==="yes"?`Included, γf = ${f(v.gSW,2)}`:"Not included", ""]);
+  (v.combos||[]).forEach((c,i)=>r.push([`Combination ${i+1}${c.n?": "+c.n:""}`, `P = ${f(c.P,1)} kN; Mz = ${f(c.Mzt,1)} / ${f(c.Mzb,1)}; My = ${f(c.Myt,1)} / ${f(c.Myb,1)} kN·m (top / bottom)`, ""]));
+  if(v.fam==="BUILT"){
+    r.push(["Arrangement / gap", `${ARR[(sp&&sp.arr)||v.bArr]} / ${f(v.gap,0)} mm`, ""]);
+    r.push(["Number of bays", String(v.nBays), ""]);
+    r.push(["Batten depth, end / intermediate", `${f(v.bdE,0)} / ${f(v.bdI,0)}`, "mm"]);
+    r.push(["Batten thickness / lap", `${f(v.bt,0)} / ${f(v.ov,0)}`, "mm"]);
+    r.push(["Fillet weld size", f(v.wS,1), "mm"]);
+  }
+  return r;
+}
+
+
+// ===== user interface =====
+const FONT = 'font-family="IBM Plex Sans, Helvetica, Arial, sans-serif"';
+const REFS = [
+  "IS 800:2007, General Construction in Steel, Code of Practice (Third Revision), Bureau of Indian Standards, with Amendment No. 1. Clause numbers in this sheet follow IS 800:2007.",
+  "IS 808, Dimensions for Hot Rolled Steel Beam, Column, Channel and Angle Sections (including NPB and WPB parallel flange sections); IS 4923:1997, Hollow Steel Sections for Structural Use; IS 1161:2014, Steel Tubes for Structural Purposes. Section data from the open Osdag database (IIT Bombay), which follows these tables.",
+  "IS 2062:2011, Hot Rolled Medium and High Tensile Structural Steel: yield stress by thickness band, Table 2.",
+  "Classification: 3.7.2 and Table 2, flange outstand, internal element and web limits for axial compression and for combined axial force and bending (r<sub>1</sub>, r<sub>2</sub>), tube D/t limits.",
+  "Slenderness: 3.8 and Table 3; effective length 7.2.2 and Table 11.",
+  "Compression: 7.1.2 design compressive strength P<sub>d</sub> = A<sub>e</sub>f<sub>cd</sub>; 7.1.2.1 f<sub>cd</sub> with imperfection factors α = 0.21, 0.34, 0.49, 0.76 for buckling classes a to d; Table 10 buckling class of cross-sections.",
+  "Bending: 8.2.1.2 design bending strength; 8.2.2 lateral-torsional buckling with α<sub>LT</sub> = 0.21 (rolled) or 0.49 (welded); Annex E, Table 42 moment factor C<sub>1</sub> for end moments.",
+  "Shear: 8.4.1 and 8.4.1.1 shear areas; 9.2.2 reduced moment capacity under high shear (taken here as the elastic capacity).",
+  "Combined forces: 9.3.1.1 and 9.3.1.2 reduced plastic moments and Table 17 exponents; 9.3.1.3 linear interaction; 9.3.2.2 member buckling interaction with K<sub>y</sub>, K<sub>z</sub>, K<sub>LT</sub> (Amendment No. 1) and Table 18 equivalent uniform moment factors.",
+  "Battened columns: 7.7.1.1 to 7.7.1.4 general rules, three bays minimum and effective slenderness 1.1(KL/r)<sub>0</sub>; 7.7.2.1 transverse shear V<sub>t</sub> = 2.5% of P, V<sub>b</sub> = V<sub>t</sub>C/(NS), M = V<sub>t</sub>C/(2N); 7.7.2.3 batten depth and thickness; 7.7.3 spacing; 7.7.4.1 welded battens.",
+  "Welds: 10.5.7.1.1 fillet weld design strength f<sub>wd</sub> = f<sub>u</sub>/(√3γ<sub>mw</sub>), γ<sub>mw</sub> = 1.25 for shop welds; 10.5.2.3 and Table 21 minimum fillet weld size; 10.5.8 maximum size on a square edge."
+];
+const SCOPE_NOTE = "Not covered: slender sections (effective area of 7.3.2), torsional and flexural-torsional buckling of single channels, angles and tees, loads applied along the height, tension, laced columns, bolted battens, column splices and bases, members with holes, tapered members, seismic design and fatigue. Moments in the plane of the battens (M<sub>y</sub> on a built-up column) are carried in the checks with the actual shear added to the batten force, but 7.7.1.2 asks for an exact stability analysis or tests for that case.";
+const DEFAULTS = {proj:"", mark:"C1", fam:"BUILT", sec:"ISHB 300", wD:400, wB:300, wtw:10, wtf:20, bComp:"ISMC", bSec:"ISMC 300", bArr:"btb", gap:200,
+  grade:"E250", hollow:"cold", L:6, condZ:2, Kz:1, condY:2, Ky:1, Ly:6, LLT:6, sway:"no", slim:"180", sw:"yes", gSW:1.5,
+  nBays:7, bdE:260, bdI:200, bt:10, ov:90, wS:6};
+const DEFAULT_COMBOS = [
+  {n:"1.5 (DL + LL)", P:1300, Mzt:0, Mzb:0, Myt:0, Myb:0},
+  {n:"1.2 (DL + LL + WL)", P:950, Mzt:45, Mzb:-30, Myt:0, Myb:0}
+];
+const ids = Object.keys(DEFAULTS);
+const NUM = new Set(["wD","wB","wtw","wtf","gap","L","condZ","Kz","condY","Ky","Ly","LLT","slim","gSW","nBays","bdE","bdI","bt","ov","wS"]);
+const $ = id => document.getElementById(id);
+const esc2 = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const today = () => new Date().toISOString().slice(0,10);
+let M = null, stale = false;
+
+// ---------- selects ----------
+function fillSelect(el, items){ el.innerHTML = items.map(([v,t])=>`<option value="${esc2(v)}">${esc2(t)}</option>`).join(""); }
+fillSelect($("fam"), Object.keys(FAMS).map(k=>[k, FAMS[k].t]));
+fillSelect($("bComp"), COMP_FAMS.map(k=>[k, FAMS[k].t]));
+fillSelect($("condZ"), COND.map((c,i)=>[i, c[1]===null?c[0]:`${c[0]} (${f(c[1],2)})`]));
+fillSelect($("condY"), COND.map((c,i)=>[i, c[1]===null?c[0]:`${c[0]} (${f(c[1],2)})`]));
+function fillRows(sel, fam, keep){
+  const rows=SECTIONS[fam]||[];
+  fillSelect(sel, rows.map(r=>[r[0], `${r[0]}  ·  ${Number(r[1]).toFixed(1)} kg/m`]));
+  if(keep && rows.some(r=>r[0]===keep)) sel.value=keep;
+  else if(rows.length) sel.value=rows[Math.min(rows.length-1, Math.floor(rows.length/2))][0];
+}
+const fillSec = keep => fillRows($("sec"), $("fam").value, keep);
+const fillBSec = keep => fillRows($("bSec"), $("bComp").value, keep);
+
+// ---------- load combinations ----------
+const CF = [["P","P (kN)"],["Mzt","M<sub>z</sub> top"],["Mzb","M<sub>z</sub> bot"],["Myt","M<sub>y</sub> top"],["Myb","M<sub>y</sub> bot"]];
+function comboCard(c,i){
+  return `<div class="combo" data-i="${i}"><div class="lrow"><span class="no">${i+1}</span><input type="text" data-k="n" value="${esc2(c.n||"")}" placeholder="name, e.g. 1.5 (DL + LL)">
+    <button type="button" class="del small" title="Remove this combination">×</button></div>
+    <div class="cvals">${CF.map(([k,t])=>`<div><label>${t}</label><input type="number" step="any" data-k="${k}" value="${isFinite(c[k])?c[k]:""}"></div>`).join("")}</div></div>`;
+}
+function readCombos(){
+  return [...document.querySelectorAll("#combos .combo")].map(card=>{
+    const c={n:card.querySelector('[data-k="n"]').value.trim()};
+    CF.forEach(([k])=>{ const x=parseFloat(card.querySelector(`[data-k="${k}"]`).value); c[k]=isFinite(x)?x:NaN; });
+    return c;
+  });
+}
+function renderCombos(cs){ $("combos").innerHTML = cs.length ? cs.map(comboCard).join("") : `<p class="note">No combinations yet. Add one below.</p>`; }
+function changed(){ $("form").dispatchEvent(new Event("input",{bubbles:true})); }
+$("combos").addEventListener("click", e=>{ const d=e.target.closest(".del"); if(!d) return; const cs=readCombos(); cs.splice(+d.closest(".combo").dataset.i,1); renderCombos(cs); changed(); });
+$("addCombo").addEventListener("click", ()=>{ const cs=readCombos(); cs.push({n:"", P:500, Mzt:0, Mzb:0, Myt:0, Myb:0}); renderCombos(cs); changed(); });
+
+// ---------- read inputs ----------
+function read(){
+  const v={};
+  ids.forEach(k=>{ const el=$(k); if(NUM.has(k)){ const x=parseFloat(el.value); v[k]=isFinite(x)?x:NaN; } else v[k]=el.value; });
+  v.combos=readCombos();
+  return v;
+}
+function inputProblems(v){
+  const p=[...geomProblems(v)];
+  if(v.sw==="yes" && !(v.gSW>0)) p.push("the self weight load factor must be positive");
+  if(v.fam==="WELD" && !secProps(v,SECTIONS)) p.push("enter valid plate sizes for the welded section");
+  return [...new Set(p)];
+}
+
+// ---------- drawing helpers ----------
+// path of one component in screen coordinates; X(), Y() map mm to px
+function iPath(X,Y,cx,D,B,tw,tf){ const p=[[cx-B/2,D/2],[cx+B/2,D/2],[cx+B/2,D/2-tf],[cx+tw/2,D/2-tf],[cx+tw/2,-D/2+tf],[cx+B/2,-D/2+tf],[cx+B/2,-D/2],[cx-B/2,-D/2],[cx-B/2,-D/2+tf],[cx-tw/2,-D/2+tf],[cx-tw/2,D/2-tf],[cx-B/2,D/2-tf]]; return "M"+p.map(([x,y])=>`${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join(" L")+" Z"; }
+function cPath(X,Y,xb,dir,D,B,tw,tf){ const s=dir; const p=[[0,D/2],[B,D/2],[B,D/2-tf],[tw,D/2-tf],[tw,-D/2+tf],[B,-D/2+tf],[B,-D/2],[0,-D/2]]; return "M"+p.map(([x,y])=>`${X(xb+s*x).toFixed(1)},${Y(y).toFixed(1)}`).join(" L")+" Z"; }
+function dimH(a,b,y,t,fs,col="#4a5560"){ return `<line x1="${a}" y1="${y}" x2="${b}" y2="${y}" stroke="${col}" stroke-width="0.7"/><line x1="${a}" y1="${y-4}" x2="${a}" y2="${y+4}" stroke="${col}"/><line x1="${b}" y1="${y-4}" x2="${b}" y2="${y+4}" stroke="${col}"/><text x="${(a+b)/2}" y="${y-3}" text-anchor="middle" font-size="${fs}" fill="${col}">${t}</text>`; }
+const FILL = `fill="#c9ccd1" stroke="#1d2329" stroke-width="1.1"`;
+
+// built-up section drawing, used by the builder (interactive) and the report
+let buScale = null;
+function buSvg(sp, v, o){
+  const c=sp.comp, W=o.W, H=o.H, t=v.bt>0?v.bt:0;
+  const S = o.S || Math.min((W-70)/sp.W, (H-80)/(c.D+2*t));
+  const cx=W/2, cy=(H-22)/2+4, X=x=>cx+x*S, Y=y=>cy-y*S;
+  let s=`<rect width="${W}" height="${H}" fill="#fff"/>`;
+  // battens behind
+  if(t>0){ const ov=Math.min(v.ov>0?v.ov:0,c.B);
+    [[c.D/2,c.D/2+t],[-c.D/2-t,-c.D/2]].forEach(([y0,y1])=>{ s+=`<rect x="${X(-sp.W/2)}" y="${Y(y1)}" width="${sp.W*S}" height="${Math.max((y1-y0)*S,1.5)}" fill="#f1e6c8" stroke="#7a5a00" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+      if(ov>0) [-1,1].forEach(sd=>s+=`<rect x="${sd<0?X(-sp.W/2):X(sp.W/2-ov)}" y="${Y(y1)}" width="${ov*S}" height="${Math.max((y1-y0)*S,1.5)}" fill="#e3cf94" stroke="none"/>`); });
+  }
+  const comp = (sd) => { // sd = -1 left, +1 right
+    if(c.kind==="I") return iPath(X,Y,sd*sp.e,c.D,c.B,c.tw,c.tf);
+    if(sp.arr==="toe") return cPath(X,Y,sd*(sp.gap/2+c.B),-sd,c.D,c.B,c.tw,c.tf);
+    return cPath(X,Y,sd*sp.gap/2,sd,c.D,c.B,c.tw,c.tf);
+  };
+  [-1,1].forEach(sd=>{ const hx=sd<0?X(-sp.W/2):X(sp.W/2-c.B); s+=`<g class="${o.interactive?"drag":""}" data-side="${sd}">${o.interactive?`<rect x="${hx}" y="${Y(c.D/2)}" width="${c.B*S}" height="${c.D*S}" fill="#000" fill-opacity="0"/>`:""}<path d="${comp(sd)}" ${FILL}/></g>`; });
+  // axes and centroids
+  s+=`<line x1="${X(-sp.W/2)-12}" y1="${cy}" x2="${X(sp.W/2)+12}" y2="${cy}" stroke="#b3261e" stroke-dasharray="6 3 1 3" stroke-width="0.8"/><text x="${X(sp.W/2)+14}" y="${cy+4}" font-size="10" fill="#b3261e">z</text>`;
+  s+=`<line x1="${cx}" y1="${Y(c.D/2+t)-12}" x2="${cx}" y2="${Y(-c.D/2-t)+8}" stroke="#b3261e" stroke-dasharray="6 3 1 3" stroke-width="0.8"/><text x="${cx+4}" y="${Y(c.D/2+t)-4}" font-size="10" fill="#b3261e">y</text>`;
+  [-1,1].forEach(sd=>{ const x=X(sd*sp.e); s+=`<circle cx="${x}" cy="${cy}" r="2.6" fill="#1f4e79"/>`; });
+  const fs=o.fs||9;
+  // gap dimension
+  const gx0 = c.kind==="I" ? X(-sp.gap/2) : X(-sp.gap/2), gx1=X(sp.gap/2);
+  if(sp.gap>0) s+=dimH(gx0,gx1,cy+(c.kind==="I"?-14:-12),`g = ${f(sp.gap,0)}`,fs,"#1f4e79");
+  s+=dimH(X(-sp.e),X(sp.e),cy+14,`2e = ${f(2*sp.e,0)}`,fs,"#1f4e79");
+  s+=dimH(X(-sp.W/2),X(sp.W/2),Y(-c.D/2-t)+16,`W = ${f(sp.W,0)} mm`,fs);
+  if(o.interactive){ [-1,1].forEach(sd=>{ const x=X(sd*(sp.W/2)), y=Y(c.D/2+t)-6; s+=`<g class="drag" data-side="${sd}"><path d="M${x-sd*2},${y} l${sd*8},0 m${-sd*3},-3 l${sd*3},3 l${-sd*3},3" stroke="#1f4e79" stroke-width="1.4" fill="none"/></g>`; }); }
+  return {svg:s, S};
+}
+function buildBuilder(){
+  const v=read(), sp=secProps(v,SECTIONS), svg=$("bu_svg");
+  if(!sp || sp.kind!=="BU"){ svg.innerHTML=`<text x="170" y="115" text-anchor="middle" font-size="10" fill="#c0392b">Enter a valid component and gap</text>`; $("bu_props").innerHTML=""; return; }
+  const W=340, H=230, r=buSvg(sp, v, {W,H,interactive:true,S:drag?drag.S:null});
+  buScale=r.S; svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.innerHTML=r.svg;
+  const cell=(t,x,bad)=>`<div><span>${t}</span><b${bad?' style="color:var(--fail)"':''}>${x}</b></div>`;
+  $("bu_props").innerHTML = cell("r<sub>z</sub> (material)", `${f(sp.rz,1)} mm`)+cell("r<sub>y</sub> (free)", `${f(sp.ry,1)} mm`, sp.ry<sp.rz)+cell("r<sub>y</sub>/r<sub>z</sub>", f(sp.ry/sp.rz,3), sp.ry<sp.rz)
+    +cell("A", `${f(sp.A/100,1)} cm²`)+cell("I<sub>z</sub> / I<sub>y</sub>", `${f(sp.Iz/1e4,0)} / ${f(sp.Iy/1e4,0)}`)+cell("Mass", `${f(sp.mass,1)} kg/m`);
+}
+let drag=null;
+$("bu_svg").addEventListener("pointerdown", e=>{
+  const g=e.target.closest(".drag"); if(!g) return;
+  e.preventDefault(); $("bu_svg").setPointerCapture(e.pointerId);
+  const rect=$("bu_svg").getBoundingClientRect();
+  drag={x0:e.clientX, g0:parseFloat($("gap").value)||0, side:+g.dataset.side, k:340/rect.width, S:buScale};
+});
+$("bu_svg").addEventListener("pointermove", e=>{
+  if(!drag) return;
+  const dmm=(e.clientX-drag.x0)*drag.k/drag.S*drag.side, g=Math.max(0, Math.round(drag.g0+2*dmm));
+  if(String(g)!==$("gap").value){ $("gap").value=g; changed(); }
+});
+["pointerup","pointercancel"].forEach(ev=>$("bu_svg").addEventListener(ev, ()=>{ if(drag){ drag=null; buildBuilder(); } }));
+function setGapRatio(k){
+  const v=read(), c=rolledProps(v.bComp,v.bSec,SECTIONS); if(!c) return;
+  const arr=c.kind==="I"?"side":v.bArr, g=gapFor(c,arr,k);
+  if(g<=0){ $("gap").value=0; toast(`r<sub>y</sub> exceeds ${k} r<sub>z</sub> even with no gap.`.replace(/<[^>]+>/g,"")); }
+  else { $("gap").value=Math.ceil(g/5)*5; toast(`Gap set to ${$("gap").value} mm (r_y = ${k} r_z needs ${f(g,1)} mm, rounded up to 5 mm).`); }
+  changed();
+}
+$("gapEq").addEventListener("click", ()=>setGapRatio(1));
+$("gap11").addEventListener("click", ()=>setGapRatio(1.1));
+$("gapM").addEventListener("click", ()=>{ $("gap").value=Math.max(0,(parseFloat($("gap").value)||0)-5); changed(); });
+$("gapP").addEventListener("click", ()=>{ $("gap").value=(parseFloat($("gap").value)||0)+5; changed(); });
+
+// ---------- show / hide and live hints ----------
+function showRows(){
+  const fam=$("fam").value, BU=fam==="BUILT";
+  $("weld_rows").hidden = fam!=="WELD"; $("row_sec").hidden = fam==="WELD"||BU; $("bu_rows").hidden=!BU; $("bat_rows").hidden=!BU;
+  $("row_hollow").hidden = !(fam==="SHS"||fam==="RHS"||fam==="CHS");
+  $("row_Kz").hidden = COND[+$("condZ").value][1]!==null; $("row_Ky").hidden = COND[+$("condY").value][1]!==null;
+  const ck=$("bComp").value; $("row_bArr").hidden = FAMS[ck] && FAMS[ck].k==="I";
+  $("gSW").closest(".field").hidden = $("sw").value!=="yes";
+  const v=read(), sp=secProps(v,SECTIONS), cell=(t,x)=>`<div><span>${t}</span><b>${x}</b></div>`;
+  if(sp){
+    const cs=sp.kind==="BU"?sp.comp:sp, tmax=Math.max(cs.tf,cs.tw), G=GRADES[v.grade], fy=fyOf(G,tmax);
+    $("props").innerHTML = sp.kind==="BU" ? "" : cell("Mass", `${f(sp.mass,1)} kg/m`)+cell("D × b<sub>f</sub>", sp.kind==="O"?`Ø${f(sp.D,1)}`:`${f(sp.D,0)} × ${f(sp.B,0)}`)+cell(sp.kind==="O"||sp.kind==="R"?"t":"t<sub>w</sub> / t<sub>f</sub>", sp.kind==="O"||sp.kind==="R"?`${f(sp.t,1)} mm`:`${f(sp.tw,1)} / ${f(sp.tf,1)}`)
+      +cell("A", `${f(sp.A/100,1)} cm²`)+cell("r<sub>z</sub>", `${f(sp.rz,1)} mm`)+cell("r<sub>y</sub>", `${f(sp.ry,1)} mm`);
+    $("fyNote").innerHTML = `Thickest element ${f(tmax,1)} mm, so f<sub>y</sub> = ${fy} MPa and f<sub>u</sub> = ${G.fu} MPa.`;
+    if(sp.kind==="BU" && v.L>0 && v.nBays>0){
+      const c=sp.comp, dc=2*sp.e, Cs=v.L*1000/v.nBays, rc=Math.sqrt(c.Iy/c.A), lz0=kOf(v.condZ,v.Kz)*v.L*1000/sp.rz, lim=Math.min(50,0.7*lz0), inner=sp.W-2*Math.min(v.ov||0,c.B);
+      const ok = v.nBays>=3 && Cs/rc<=lim && v.bdE>=Math.max(dc,2*c.B)-0.5 && v.bdI>=Math.max(0.75*dc,2*c.B)-0.5 && v.bt>=inner/50 && v.ov>=4*v.bt;
+      $("bat_hint").className="hint "+(ok?"ok":"bad");
+      $("bat_hint").innerHTML=`C = ${f(Cs,0)} mm; C/r<sub>min</sub> = ${f(Cs/rc,1)} (limit ${f(lim,1)}). Depth ≥ ${f(Math.max(dc,2*c.B),0)} mm at the ends, ≥ ${f(Math.max(0.75*dc,2*c.B),0)} mm between. t ≥ ${f(inner/50,1)} mm; lap ≥ 4t = ${f(4*v.bt,0)} mm, and at most b<sub>f</sub> = ${f(c.B,0)} mm.`;
+    }
+  } else { $("props").innerHTML=""; $("fyNote").textContent=""; }
+  $("props").hidden = !$("props").innerHTML;
+  if(BU) buildBuilder();
+}
+
+// ---------- column elevation ----------
+// end symbols for each condition: [bottom, top]
+const ENDS = [["fix","fix"],["fix","pin"],["pin","pin"],["fix","guide"],["pin","guide"],["fix","roll"],["fix","free"],["pin","pin"]];
+function endSym(x, y, t, top){
+  const d=top?-1:1; let s="";
+  if(t==="fix"||t==="guide"){ s+=`<line x1="${x-20}" y1="${y}" x2="${x+20}" y2="${y}" stroke="#1d2329" stroke-width="2"/>`; for(let k=-18;k<=14;k+=6) s+=`<line x1="${x+k}" y1="${y}" x2="${x+k+6}" y2="${y+d*7}" stroke="#1d2329" stroke-width="0.8"/>`;
+    if(t==="guide") s+=`<circle cx="${x-12}" cy="${y+d*10}" r="3" fill="#fff" stroke="#1d2329"/><circle cx="${x+12}" cy="${y+d*10}" r="3" fill="#fff" stroke="#1d2329"/>`; }
+  else if(t==="pin"||t==="roll"){ s+=`<path d="M${x},${y} L${x-9},${y+d*15} L${x+9},${y+d*15} Z" fill="#fff" stroke="#1d2329" stroke-width="1.3"/>`;
+    const gy=y+d*(t==="roll"?22:15); if(t==="roll") s+=`<circle cx="${x-5}" cy="${y+d*18.5}" r="3" fill="#fff" stroke="#1d2329"/><circle cx="${x+5}" cy="${y+d*18.5}" r="3" fill="#fff" stroke="#1d2329"/>`;
+    s+=`<line x1="${x-13}" y1="${gy}" x2="${x+13}" y2="${gy}" stroke="#1d2329"/>`; for(let k=-12;k<=8;k+=5) s+=`<line x1="${x+k}" y1="${gy}" x2="${x+k-4}" y2="${gy+d*5}" stroke="#1d2329" stroke-width="0.7"/>`; }
+  return s;
+}
+function columnElev(v, sp, c, o){
+  // o: {x, y0 (top), h, small}
+  const x=o.x, yt=o.y0, yb=o.y0+o.h, fs=o.small?9:10.5, BU=sp&&sp.kind==="BU";
+  const ends=ENDS[v.condZ]||ENDS[2];
+  let s="";
+  if(BU){
+    const w=o.small?28:40, Lm=v.L*1000, Y=z=>yb-z/Lm*o.h, comp=w*0.32;
+    s+=`<rect x="${x-w/2}" y="${yt}" width="${comp}" height="${o.h}" fill="#c9ccd1" stroke="#1d2329"/><rect x="${x+w/2-comp}" y="${yt}" width="${comp}" height="${o.h}" fill="#c9ccd1" stroke="#1d2329"/>`;
+    if(v.nBays>0 && v.nBays<60){ const Cs=Lm/v.nBays;
+      for(let i=0;i<=v.nBays;i++){ const end=i===0||i===v.nBays, d=end?(v.bdE||0):(v.bdI||0), zc=i===0?d/2:i===v.nBays?Lm-d/2:i*Cs, hh=Math.max(d/Lm*o.h,2);
+        s+=`<rect x="${x-w/2-2}" y="${Y(zc)-hh/2}" width="${w+4}" height="${hh}" fill="#f1e6c8" stroke="#7a5a00" stroke-width="0.8"/>`; } }
+  } else s+=`<rect x="${x-6}" y="${yt}" width="12" height="${o.h}" fill="#c9ccd1" stroke="#1d2329"/>`;
+  s+=endSym(x, yb, ends[0], false);
+  if(ends[1]!=="free") s+=endSym(x, yt, ends[1], true);
+  // y-y bracing points
+  if(v.Ly>0 && v.L>0 && v.Ly<v.L-1e-6){ const n=Math.round(v.L/v.Ly); for(let i=1;i<n;i++){ const yy=yb-i*v.Ly/v.L*o.h; s+=`<line x1="${x-(BU?26:16)}" y1="${yy}" x2="${x-(BU?40:30)}" y2="${yy}" stroke="#2e7d4f" stroke-width="2"/><text x="${x-(BU?42:32)}" y="${yy+3}" text-anchor="end" font-size="${fs-1}" fill="#2e7d4f">y-brace</text>`; } }
+  if(c && isFinite(c.P)){
+    const ya=yt-(ends[1]==="free"?4:26);
+    s+=`<line x1="${x}" y1="${ya-34}" x2="${x}" y2="${ya}" stroke="#1f4e79" stroke-width="2"/><path d="M${x-5},${ya-8} L${x},${ya} L${x+5},${ya-8}" fill="#1f4e79"/><text x="${x+8}" y="${ya-24}" font-size="${fs}" fill="#1f4e79" font-weight="600">P = ${f(c.P,0)} kN</text>`;
+    const ml=(m1,m2,y,dy)=>{ const t=[]; if(Math.abs(m1)>1e-9) t.push(`M<tspan baseline-shift="sub" font-size="${fs-3}">z</tspan> ${sg(m1,1)}`); if(Math.abs(m2)>1e-9) t.push(`M<tspan baseline-shift="sub" font-size="${fs-3}">y</tspan> ${sg(m2,1)}`); return t.length?`<text x="${x+(BU?30:20)}" y="${y+dy}" font-size="${fs-0.5}" fill="#b3261e">${t.join(", ")} kN·m</text>`:""; };
+    s+=ml(c.Mzt,c.Myt,yt,12)+ml(c.Mzb,c.Myb,yb,-4);
+  }
+  // length dimension
+  const dx=x+(BU?62:46);
+  s+=`<line x1="${dx}" y1="${yt}" x2="${dx}" y2="${yb}" stroke="#4a5560" stroke-width="0.7"/><line x1="${dx-4}" y1="${yt}" x2="${dx+4}" y2="${yt}" stroke="#4a5560"/><line x1="${dx-4}" y1="${yb}" x2="${dx+4}" y2="${yb}" stroke="#4a5560"/><text transform="translate(${dx+11},${(yt+yb)/2}) rotate(-90)" text-anchor="middle" font-size="${fs}" fill="#4a5560">L = ${f(v.L,2)} m</text>`;
+  return s;
+}
+function drawPreview(){
+  const svg=$("prev_svg"), v=read(), rd=$("prev_read"), probs=inputProblems(v), sp=secProps(v,SECTIONS);
+  const W=360, H=300;
+  let s=`<rect width="${W}" height="${H}" fill="#fff"/>`;
+  if(v.L>0) s+=columnElev(v, sp, v.combos.find(c=>isFinite(c.P)), {x:150, y0:62, h:200, small:true});
+  const Kz=kOf(v.condZ,v.Kz), Ky=kOf(v.condY,v.Ky);
+  s+=`<text x="10" y="${H-10}" font-size="9.5" fill="#4a5560">KL: z-z ${f(Kz*v.L,2)} m, y-y ${f(Ky*v.Ly,2)} m; L<tspan baseline-shift="sub" font-size="7">LT</tspan> ${f(v.LLT,2)} m</text>`;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.innerHTML=s;
+  $("prevNote").textContent = sp && sp.kind==="BU" ? "battens drawn to scale along the height" : "";
+  if(probs.length){ rd.className="lstatus bad"; rd.innerHTML="Input problem: "+esc2(probs[0])+"."; return; }
+  try {
+    const R=design(v,SECTIONS); rd.className="lstatus "+(R.allOk?"ok":"bad");
+    rd.innerHTML=`P<sub>d</sub> = ${f(R.Pd,1)} kN; governing ${R.govU[0].toLowerCase()} ratio ${f(R.govU[1],2)}. ${R.allOk?"All checks pass.":"Some checks fail."} Preview only; click Calculate for the full design.`;
+  } catch(e){ rd.className="lstatus na"; rd.textContent=""; }
+}
+
+// ---------- result figures ----------
+function diagramSvg(M){
+  const v=M.v, c=M.gv, W=760, H=480, top=100, h=260;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" ${FONT} font-size="11" fill="#1d2329"><rect width="${W}" height="${H}" fill="#fff"/>
+    <text x="${W/2}" y="20" text-anchor="middle" font-size="13" font-weight="bold">Governing combination ${c.i+1}${c.n?` (${esc2(c.n)})`:""}: column, end moments and buckling lengths</text>`;
+  s+=columnElev(v, M.sp, c, {x:120, y0:top, h, small:false});
+  const plot=(x0,title,mt,mb,col)=>{
+    const mx=Math.max(Math.abs(mt),Math.abs(mb),1e-9), k=70/mx, yt=top, yb=top+h;
+    let t=`<text x="${x0}" y="${top-28}" text-anchor="middle" font-weight="bold">${title}</text><text x="${x0}" y="${top-14}" text-anchor="middle" fill="#5d6670">kN·m</text>`;
+    t+=`<line x1="${x0}" y1="${yt}" x2="${x0}" y2="${yb}" stroke="#1d2329" stroke-width="0.8"/>`;
+    t+=`<polygon points="${x0},${yt} ${x0+mt*k},${yt} ${x0+mb*k},${yb} ${x0},${yb}" fill="${col}" fill-opacity="0.15" stroke="none"/><line x1="${x0+mt*k}" y1="${yt}" x2="${x0+mb*k}" y2="${yb}" stroke="${col}" stroke-width="1.6"/>`;
+    t+=`<text x="${x0+mt*k+(mt>=0?5:-5)}" y="${yt+12}" text-anchor="${mt>=0?"start":"end"}" fill="${col}" font-weight="bold">${f(mt,1)}</text><text x="${x0+mb*k+(mb>=0?5:-5)}" y="${yb-4}" text-anchor="${mb>=0?"start":"end"}" fill="${col}" font-weight="bold">${f(mb,1)}</text>`;
+    return t;
+  };
+  s+=plot(380,"M<tspan baseline-shift=\"sub\" font-size=\"8\">z</tspan> (about z-z)",c.Mzt,c.Mzb,"#b3261e");
+  s+=plot(560,"M<tspan baseline-shift=\"sub\" font-size=\"8\">y</tspan> (about y-y)",c.Myt,c.Myb,"#1f4e79");
+  const L=[`P = ${f(c.P,1)} kN (with self weight), P/P<tspan baseline-shift="sub" font-size="8">d</tspan> = ${f3(c.uAx)}`,
+    `z-z: K = ${f(M.Kz,2)}, KL = ${f(M.Kz*v.L,2)} m, KL/r = ${f(M.lz,1)}, P<tspan baseline-shift="sub" font-size="8">dz</tspan> = ${f(M.Pdz,0)} kN`,
+    `y-y: K = ${f(M.Ky,2)}, KL = ${f(M.Ky*v.Ly,2)} m, KL/r = ${f(M.ly,1)}, P<tspan baseline-shift="sub" font-size="8">dy</tspan> = ${f(M.Pdy,0)} kN`,
+    `ψ: z ${f(c.psiZ,2)}, y ${f(c.psiY,2)}; C<tspan baseline-shift="sub" font-size="8">mz</tspan> = ${f(c.Cmz,2)}, C<tspan baseline-shift="sub" font-size="8">my</tspan> = ${f(c.Cmy,2)}`];
+  L.forEach((t,i)=>s+=`<text x="300" y="${top+h+44+i*15}" fill="#4a5560">${t}</text>`);
+  s+=`<text x="380" y="${top+h+16}" text-anchor="middle" fill="#5d6670" font-size="10">same sign at both ends = single curvature</text></svg>`;
+  return s;
+}
+function plotSvgs(M){ if(M.early) return []; const s=diagramSvg(M); return [{svg:s, w:760, h:480}]; }
+function singleSvg(sp){
+  const S=Math.min(230/sp.D, 210/sp.B), W=Math.max(sp.B*S+190,300), H=sp.D*S+70, cx=70+sp.B*S/2, cy=28+sp.D*S/2, X=x=>cx+x*S, Y=y=>cy-y*S, x0=cx-sp.B*S/2, y0=cy-sp.D*S/2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" ${FONT} font-size="11" fill="#1d2329"><rect width="${W}" height="${H}" fill="#fff"/>`;
+  const D=sp.D*S, B=sp.B*S;
+  if(sp.kind==="I") s+=`<path d="${iPath(X,Y,0,sp.D,sp.B,Math.max(sp.tw,1.2/S),Math.max(sp.tf,1.2/S))}" ${FILL}/>`;
+  else if(sp.kind==="C") s+=`<path d="${cPath(X,Y,-sp.B/2,1,sp.D,sp.B,Math.max(sp.tw,1.2/S),Math.max(sp.tf,1.2/S))}" ${FILL}/>`;
+  else if(sp.kind==="R"){ const t=Math.max(sp.t*S,1.2), r=Math.min(2*t,B/4); s+=`<path fill-rule="evenodd" d="M${x0+r},${y0} h${B-2*r} a${r},${r} 0 0 1 ${r},${r} v${D-2*r} a${r},${r} 0 0 1 ${-r},${r} h${-(B-2*r)} a${r},${r} 0 0 1 ${-r},${-r} v${-(D-2*r)} a${r},${r} 0 0 1 ${r},${-r} Z M${x0+t},${y0+t} h${B-2*t} v${D-2*t} h${-(B-2*t)} Z" ${FILL}/>`; }
+  else { const t=Math.max(sp.t*S,1.2); s+=`<path fill-rule="evenodd" d="M${cx-D/2},${cy} a${D/2},${D/2} 0 1 0 ${D},0 a${D/2},${D/2} 0 1 0 ${-D},0 Z M${cx-D/2+t},${cy} a${D/2-t},${D/2-t} 0 1 0 ${D-2*t},0 a${D/2-t},${D/2-t} 0 1 0 ${-(D-2*t)},0 Z" ${FILL}/>`; }
+  s+=`<line x1="${x0-18}" y1="${cy}" x2="${x0+B+18}" y2="${cy}" stroke="#b3261e" stroke-dasharray="6 3 1 3" stroke-width="0.8"/><text x="${x0+B+20}" y="${cy+4}" fill="#b3261e">z</text>`;
+  s+=`<line x1="${cx}" y1="${y0-14}" x2="${cx}" y2="${y0+D+14}" stroke="#b3261e" stroke-dasharray="6 3 1 3" stroke-width="0.8"/><text x="${cx+4}" y="${y0-6}" fill="#b3261e">y</text>`;
+  s+=`<line x1="${x0-34}" y1="${y0}" x2="${x0-34}" y2="${y0+D}" stroke="#4a5560" stroke-width="0.7"/><text transform="translate(${x0-40},${cy}) rotate(-90)" text-anchor="middle">D = ${f(sp.D,1)}</text>`;
+  if(sp.kind!=="O") s+=`<line x1="${x0}" y1="${y0+D+22}" x2="${x0+B}" y2="${y0+D+22}" stroke="#4a5560" stroke-width="0.7"/><text x="${cx}" y="${y0+D+36}" text-anchor="middle">b<tspan baseline-shift="sub" font-size="8">f</tspan> = ${f(sp.B,1)}</text>`;
+  const tx=x0+B+34;
+  if(sp.kind==="I"||sp.kind==="C") s+=`<text x="${tx}" y="${y0+12}">t<tspan baseline-shift="sub" font-size="8">f</tspan> = ${f(sp.tf,1)}</text><text x="${tx}" y="${cy-12}">t<tspan baseline-shift="sub" font-size="8">w</tspan> = ${f(sp.tw,1)}</text>`;
+  else s+=`<text x="${tx}" y="${y0+12}">t = ${f(sp.t,1)}</text>`;
+  return {svg:s+`</svg>`, cap:`${sp.name}, to scale, dimensions in mm`, w:W, h:H};
+}
+function batElevSvg(M){
+  const v=M.v, sp=M.sp, c=sp.comp, b=M.bat, W=380, H=470, Lm=v.L*1000, h=380, top=40;
+  const S=Math.min(150/sp.W, 1), wpx=sp.W*S, x0=150-wpx/2, Y=z=>top+h-z/Lm*h, cw=c.B*S;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" ${FONT} font-size="10.5" fill="#1d2329"><rect width="${W}" height="${H}" fill="#fff"/>`;
+  s+=`<text x="${W/2}" y="20" text-anchor="middle" font-size="12" font-weight="bold">Batten layout, face view</text>`;
+  s+=`<rect x="${x0}" y="${top}" width="${cw}" height="${h}" fill="#c9ccd1" stroke="#1d2329"/><rect x="${x0+wpx-cw}" y="${top}" width="${cw}" height="${h}" fill="#c9ccd1" stroke="#1d2329"/>`;
+  for(let i=0;i<=v.nBays;i++){ const end=i===0||i===v.nBays, d=end?v.bdE:v.bdI, zc=i===0?d/2:i===v.nBays?Lm-d/2:i*b.Cs, hh=Math.max(d/Lm*h,2.5);
+    s+=`<rect x="${x0-3}" y="${Y(zc)-hh/2}" width="${wpx+6}" height="${hh}" fill="#f1e6c8" stroke="#7a5a00" stroke-width="0.9"/>`;
+    if(i===1||i===0) s+=`<text x="${x0+wpx+12}" y="${Y(zc)+4}" fill="#7a5a00">${end?"end":"intermediate"} ${f(d,0)} × ${f(v.bt,0)}</text>`; }
+  // C dimension
+  const dx=x0-22; s+=`<line x1="${dx}" y1="${Y(b.Cs)}" x2="${dx}" y2="${Y(2*b.Cs)}" stroke="#4a5560"/><line x1="${dx-4}" y1="${Y(b.Cs)}" x2="${dx+4}" y2="${Y(b.Cs)}" stroke="#4a5560"/><line x1="${dx-4}" y1="${Y(2*b.Cs)}" x2="${dx+4}" y2="${Y(2*b.Cs)}" stroke="#4a5560"/><text transform="translate(${dx-6},${Y(1.5*b.Cs)}) rotate(-90)" text-anchor="middle" fill="#4a5560">C = ${f(b.Cs,0)}</text>`;
+  s+=`<text x="${W/2}" y="${H-24}" text-anchor="middle" fill="#4a5560">${v.nBays} bays over L = ${f(v.L,2)} m; battens on both faces; ${f(v.wS,0)} mm fillet welds</text>`;
+  s+=`<text x="${W/2}" y="${H-10}" text-anchor="middle" fill="#5d6670" font-size="9.5">Width and batten depths to scale along their own directions; height compressed</text></svg>`;
+  return {svg:s, cap:"Batten layout along the column", w:W, h:H};
+}
+function detailSvgs(M){
+  if(!M.sp) return [];
+  if(M.sp.kind!=="BU") return [singleSvg(M.sp)];
+  const W=420, H=330, r=buSvg(M.sp, M.v, {W,H,fs:10.5});
+  const out=[{svg:`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" ${FONT} font-size="11" fill="#1d2329">${r.svg}</svg>`, cap:`${M.sp.name}, to scale, battens dashed, laps shaded`, w:W, h:H}];
+  if(!M.early && M.bat) out.push(batElevSvg(M));
+  return out;
+}
+function propRows(M){
+  const sp=M.sp, r=[];
+  r.push(["Designation", sp.name, "", sp.famT]);
+  r.push(["Mass", f(sp.mass,2), "kg/m", sp.kind==="BU"?"components only":""], ["Area, A", f(sp.A/100,2), "cm²", ""]);
+  if(sp.kind==="BU"){ r.push(["Overall width W / gap g", `${f(sp.W,0)} / ${f(sp.gap,0)}`, "mm", ""], ["Component centroid offset, e", f(sp.e,1), "mm", ""]); }
+  r.push(["I<sub>z</sub> / I<sub>y</sub>", `${f(sp.Iz/1e4,1)} / ${f(sp.Iy/1e4,1)}`, "cm⁴", ""], ["r<sub>z</sub> / r<sub>y</sub>", `${f(sp.rz/10,2)} / ${f(sp.ry/10,2)}`, "cm", ""]);
+  r.push(["Z<sub>e,z</sub> / Z<sub>p,z</sub>", `${f(sp.Zez/1e3,1)} / ${f(sp.Zpz/1e3,1)}`, "cm³", ""], ["Z<sub>e,y</sub> / Z<sub>p,y</sub>", `${f(sp.Zey/1e3,1)} / ${f(sp.Zpy/1e3,1)}`, "cm³", sp.zpyCalc?"computed from the plate idealization":""]);
+  if(sp.kind!=="O") r.push(["I<sub>t</sub> / I<sub>w</sub>", `${f(sp.It/1e4,2)} / ${f(sp.Iw/1e6,0)}`, "cm⁴ / cm⁶", sp.iwCalc?"I<sub>w</sub> computed or approximated":""]);
+  r.push(["Buckling class z-z / y-y", `${M.bc.z} / ${M.bc.y}`, "", M.bc.why]);
+  r.push(["Design strengths", `P<sub>dz</sub> = ${f(M.Pdz,1)} kN, P<sub>dy</sub> = ${f(M.Pdy,1)} kN`, "", `f<sub>y</sub> = ${M.fy} MPa, ε = ${f(M.eps,3)}`]);
+  return r;
+}
+
+// ---------- render ----------
+const statusOf = k => k.ok ? "PASS" : (k.info ? "NOTE" : "FAIL");
+const badge = t => `<span class="badge ${t==="PASS"?"pass":t==="FAIL"?"fail":"info"}">${t}</span>`;
+function headline(){ return `${M.sp?M.sp.name:"Section"}, ${M.v.grade.replace("E","E ")}, column ${f(M.v.L,2)} m long`; }
+function strengthLine(){ if(M.early) return ""; const g=M.gv; return `Governing combination ${g.i+1}: P = ${f(g.P,1)} kN against P<sub>d</sub> = ${f(M.Pd,1)} kN${g.hasM?`, interaction ${f(Math.max(g.Usec,g.eq1,g.eq2),3)}`:""}.`; }
+function comboRows(M){
+  return M.combos.map(c=>[c.i+1, c.n||"", f(c.P,1), f(c.Mz,1), f(c.My,1), CLS[c.cl.c], f3(c.uAx), c.hasM?f3(c.Usec):"–", c.hasM?f3(c.eq1):"–", c.hasM?f3(c.eq2):"–", f3(c.uSh), f3(c.u), c.u<=1&&c.cl.c<3?"PASS":"FAIL"]);
+}
+const COMBO_HEAD = ["#","Combination","P (kN)","M<sub>z</sub> (kN·m)","M<sub>y</sub> (kN·m)","Class","P/P<sub>d</sub>","Section","Buckling y","Buckling z","Shear","Max","Status"];
+function render(){
+  $("empty").hidden=true; $("results").hidden=false; $("stale").hidden=true; stale=false;
+  const ok=M.allOk;
+  $("verdict").className="verdict "+(ok?"pass":"fail");
+  $("verdict").innerHTML=`<div class="big">${ok?"PASS":"FAIL"}</div><div class="txt"><b>${headline()}.</b> ${strengthLine()} ${ok?"All checks are satisfied.":"Not satisfied: "+M.failed.map(k=>k.name).join("; ")+"."}</div>`;
+  $("ubars").innerHTML = M.early ? "" : M.utils.map(([t,u])=>`<div class="ubar"><span>${t}</span><b>${u===null?"–":f(u,3)}</b><div class="bar"><i style="width:${u===null?0:Math.min(u,1)*100}%;background:${u!==null&&u>1?"var(--fail)":"var(--pass)"}"></i></div></div>`).join("");
+  let h=`<tr><th>#</th><th>Check</th><th>Clause</th><th>Required</th><th>Provided / actual</th><th>Status</th></tr>`, lg="";
+  M.checks.forEach((k,i)=>{ if(k.group!==lg){ lg=k.group; h+=`<tr class="grp"><td colspan="6">${k.group}</td></tr>`; } h+=`<tr><td>${i+1}</td><td>${k.name}</td><td>${k.ref}</td><td class="num">${k.demand}</td><td class="num">${k.capacity}</td><td>${badge(statusOf(k))}</td></tr>`; });
+  if(M.early) h+=`<tr><td colspan="6" style="color:var(--fail)">${M.probs.map(esc2).join("; ")}</td></tr>`;
+  $("checks").innerHTML=h;
+  $("ctab").innerHTML = M.early ? "" : `<tr>${COMBO_HEAD.map(t=>`<th>${t}</th>`).join("")}</tr>`+comboRows(M).map(r=>`<tr${M.gv&&r[0]===M.gv.i+1?' style="background:#fbf6e6"':""}>${r.map((x,j)=>j===12?`<td>${badge(x)}</td>`:`<td class="${j>1&&j!==5?"num":""}">${esc2(x)}</td>`).join("")}</tr>`).join("");
+  $("inputs").innerHTML=`<tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>`+M.inRows.map(r=>`<tr><td>${r[0]}</td><td class="num">${esc2(r[1])}</td><td>${r[2]}</td></tr>`).join("");
+  $("figs").innerHTML=plotSvgs(M).map(p=>p.svg).join("");
+  let sh="", lp="";
+  M.steps.forEach((s,i)=>{ if(s.part!==lp){ lp=s.part; sh+=`<div class="part">${s.part}</div>`; }
+    sh+=`<div class="step"><div class="step-h"><b>Step ${i+1}. ${s.title}</b><span class="ref">${refLabel(s.ref)}</span></div><div class="calc">${s.lines.join("<br>")}</div>${s.note?`<p>${s.note}</p>`:""}</div>`; });
+  $("steps").innerHTML=sh;
+  let su=`<div class="tscroll"><table><tr><th>Item</th><th>Result</th><th>Remark</th><th>Status</th></tr>`;
+  M.sumRows.forEach(r=>{ su+= r.g ? `<tr class="grp"><td colspan="4">${r.g}</td></tr>` : `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]?badge(r[3]):""}</td></tr>`; });
+  su+=`<tr class="total"><td>${M.outcomeRow[0]}</td><td>${M.outcomeRow[1]}</td><td>${M.outcomeRow[2]}</td><td>${badge(M.outcomeRow[3])}</td></tr></table></div>`;
+  if(M.actions.length) su+=`<h4>Items to resolve</h4><div class="tscroll"><table><tr><th>Check</th><th>Clause</th><th>Required</th><th>Actual</th><th>Action</th></tr>${M.actions.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td>${r[4]}</td></tr>`).join("")}</table></div>`;
+  su+=`<p class="note">${SCOPE_NOTE}</p>`;
+  $("summary").innerHTML=su;
+  $("detail").innerHTML=detailSvgs(M).map(d=>`<figure>${d.svg}<figcaption>${d.cap}</figcaption></figure>`).join("");
+  M.schedule = M.sp && !M.early ? propRows(M) : [];
+  $("schedule").innerHTML = M.schedule.length ? `<tr><th>Property</th><th>Value</th><th>Unit</th><th>Remark</th></tr>`+M.schedule.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("") : "";
+  updateButtons();
+}
+function calculate(){
+  const v=read(), probs=inputProblems(v);
+  if(probs.length){ const sp=secProps(v,SECTIONS); M={v,sp,steps:[],checks:[],early:true,probs,inRows:inputRows(v,sp),allOk:false,failed:[],sumRows:[],outcomeRow:["Outcome","Inputs incomplete",probs[0],"FAIL"],actions:[],combos:[]}; }
+  else M=design(v,SECTIONS);
+  render();
+}
+function findLightest(){
+  const v=read(); if(v.fam==="WELD") return toast("Pick a rolled or built-up section type to search its table.", true);
+  const probs=inputProblems(v); if(probs.length) return toast("Fix the inputs first: "+probs[0]+".", true);
+  const BU=v.fam==="BUILT", fam=BU?v.bComp:v.fam, rows=[...(SECTIONS[fam]||[])].sort((a,b)=>a[1]-b[1]);
+  for(const r of rows){ const vv=BU?{...v,bSec:r[0]}:{...v,sec:r[0]}; const R=design(vv,SECTIONS);
+    if(R.allOk){ if(BU) $("bSec").value=r[0]; else $("sec").value=r[0]; showRows(); calculate(); drawPreview();
+      return toast(`${BU?"2 × ":""}${r[0]} (${f(BU?2*r[1]:r[1],1)} kg/m) is the lightest ${fam} that passes every check${BU?` with the present gap and battens`:""}.`); } }
+  toast(`No ${fam} section passes every check${BU?" with the present gap and battens. Try sizing the battens or changing the gap":". Try a heavier type, add restraints or use a higher grade"}.`, true);
+}
+function sizeBattens(){
+  let v=read(); const sp=secProps(v,SECTIONS); if(!sp||sp.kind!=="BU") return;
+  if(inputProblems({...v,nBays:7,bdE:1,bdI:1,bt:1,ov:1,wS:1}).length) return toast("Fix the other inputs first.", true);
+  const c=sp.comp, dc=2*sp.e, up=(x,k)=>Math.ceil(x/k-1e-9)*k, rc=Math.sqrt(c.Iy/c.A), lz0=kOf(v.condZ,v.Kz)*v.L*1000/sp.rz;
+  let nB=Math.max(3, Math.ceil(v.L*1000/(rc*Math.min(50,0.7*lz0)))), ov=Math.floor(c.B), dE=up(Math.max(dc,2*c.B),10), dI=up(Math.max(0.75*dc,2*c.B),10);
+  let t=Math.max(6, up((sp.W-2*ov)/50,1)); if(t%2) t++;
+  const sw=t2=>{ const tth=Math.max(t2,c.tf), smin=tth<=10?3:tth<=20?5:tth<=32?6:8; return Math.max(smin, Math.min(6, Math.floor(t2-1.5))); };
+  let s=sw(t), R;
+  for(let it=0; it<80; it++){
+    const vv={...v, nBays:nB, bdE:dE, bdI:dI, bt:t, ov, wS:s}; R=design(vv,SECTIONS);
+    const bad=R.checks.filter(k=>k.group==="Battens" && !k.ok && !k.info).map(k=>strip(k.name));
+    if(!bad.length) break;
+    if(bad.some(n=>/component slenderness/i.test(n))) { nB++; continue; }
+    if(bad.some(n=>/lap/i.test(n))) { t=Math.max(6,t-2); s=sw(t); continue; }
+    if(bad.some(n=>/weld stress/i.test(n))) { const smax=Math.floor(t-1.5); if(s<smax) s++; else { t+=2; s=sw(t); } continue; }
+    if(bad.some(n=>/bending|shear stress/i.test(n))) { dI+=10; dE=Math.max(dE,dI); continue; }
+    if(bad.some(n=>/thickness|weld size/i.test(n))) { t+=2; s=sw(t); continue; }
+    break;
+  }
+  $("nBays").value=nB; $("bdE").value=dE; $("bdI").value=dI; $("bt").value=t; $("ov").value=ov; $("wS").value=s;
+  changed();
+  const bad=R?R.checks.filter(k=>k.group==="Battens" && !k.ok && !k.info):[];
+  toast(bad.length ? `Battens set to the code minimums, but these still fail: ${bad.map(k=>strip(k.name)).join("; ")}.` : `Battens set: ${nB} bays, ${dE}/${dI} mm deep, ${t} mm thick, ${s} mm welds. All batten checks pass.`, !!bad.length);
+}
+
+// ---------- state, buttons, exports ----------
+let dl = null;
+const toast = (t, bad) => { const el=$("toast"); el.textContent = t; el.style.color = bad ? "var(--fail)" : "var(--accent)"; };
+function updateButtons(){ const ready = !!M && !stale && !M.early; $("copy").disabled = !ready; $("pdf").disabled = !(ready && dl); $("xls").disabled = !(ready && dl); }
+(async () => {
+  if (window.claude && window.claude.use){
+    try { dl = await window.claude.use("downloads"); } catch(e){ dl = null; }
+  } else {
+    dl = { save: async ({filename, data}) => {
+      const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data]));
+      const a = document.createElement("a"); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      return {status:"saved"};
+    }};
+  }
+  updateButtons();
+  if (!dl) toast("File export is not available in this view. Open the page in Claude to export.");
+})();
+function markStale(){ if (M && !stale){ stale = true; $("stale").hidden = false; updateButtons(); } }
+function fileBase(){ const m = (M.v.mark || "column").replace(/[^A-Za-z0-9_-]+/g,"-"); return `Steel-column-IS800_${m}_${today()}`; }
+async function save(filename, data){
+  if (!dl) return toast("File export is not available in this view.", true);
+  try { await dl.save({filename, data}); toast("Saved " + filename); }
+  catch(e){ toast(e && e.code === "declined" ? "Export cancelled." : "Export failed: " + ((e && (e.message || e.code)) || "unknown error"), true); }
+}
+function svgToImg(svg, w, h){
+  return new Promise((resolve, reject) => {
+    const img = new Image(), t = setTimeout(() => reject(new Error("timeout")), 4000);
+    img.onload = () => { try { clearTimeout(t);
+        const k = 2, cv = document.createElement("canvas"); cv.width = w*k; cv.height = h*k;
+        const cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0,0,cv.width,cv.height); cx.drawImage(img,0,0,cv.width,cv.height);
+        resolve(cv.toDataURL("image/jpeg", 0.92));
+      } catch(e){ reject(e); } };
+    img.onerror = () => { clearTimeout(t); reject(new Error("image load failed")); };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" '));
+  });
+}
+const LIB_HELP = "Reload the page. If you opened index.html from a download, keep the lib folder next to it.";
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error(src + " could not be loaded. " + LIB_HELP)); document.head.appendChild(s); }); }
+async function ensureLibs(kind){
+  const need = kind === "pdf"
+    ? [[() => window.jspdf && window.jspdf.jsPDF, "lib/jspdf.umd.min.js"], [() => window.jspdf.jsPDF.API.autoTable, "lib/jspdf.plugin.autotable.min.js"], [() => window.BEAM_FONTS, "lib/fonts.js"]]
+    : [[() => window.XLSX, "lib/xlsx.mini.min.js"]];
+  for (const [ok, src] of need){ if (ok()) continue; await loadScript(src); if (!ok()) throw new Error(src + " did not load. " + LIB_HELP); }
+}
+
+async function buildPdf(){
+  await ensureLibs("pdf");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+  doc.addFileToVFS("DejaVu.ttf", window.BEAM_FONTS.reg); doc.addFont("DejaVu.ttf","DejaVu","normal");
+  doc.addFileToVFS("DejaVu-Bold.ttf", window.BEAM_FONTS.bold); doc.addFont("DejaVu-Bold.ttf","DejaVu","bold");
+  const L = 14, R = 196, W = R - L, INK = [29,35,41], ACC = [31,78,121], GREEN = [30,122,70], RED = [179,38,30], AMB = [122,90,0];
+  const {v} = M, code = "IS 800:2007";
+  const base = {theme:"grid", margin:{left:L,right:14,top:16,bottom:16},
+    styles:{font:"DejaVu", fontSize:8, cellPadding:1.5, textColor:INK, lineColor:[205,202,192], lineWidth:0.1, overflow:"linebreak"},
+    headStyles:{fillColor:INK, textColor:255, font:"DejaVu", fontStyle:"bold"}};
+  const grpStyle = {fillColor:[240,238,231], textColor:[93,102,112], fontStyle:"bold"};
+  const colourStatus = d => { if (d.section!=="body") return; const t = d.cell.raw;
+    if (t==="PASS"||t==="FAIL"||t==="NOTE"){ d.cell.styles.textColor = t==="PASS"?GREEN:t==="FAIL"?RED:AMB; d.cell.styles.fontStyle="bold"; } };
+  let y;
+  const heading = t => { if (y > 262){ doc.addPage(); y = 18; } doc.setFont("DejaVu","bold"); doc.setFontSize(10.5); doc.setTextColor(...INK); doc.text(t, L, y); y += 2.5; };
+  const after = gap => { y = doc.lastAutoTable.finalY + (gap||8); };
+  const caption = t => { doc.setFont("DejaVu","normal"); doc.setFontSize(7.5); doc.setTextColor(93,102,112); doc.text(t, L+W/2, y+2, {align:"center"}); y += 7; };
+  const fig = async (svg, w0, h0, maxW, cap) => {
+    try { const im = await svgToImg(svg, w0, h0); let w = Math.min(W, maxW), hh = w*h0/w0; if (hh > 250){ hh = 250; w = hh*w0/h0; }
+      if (y + hh > 272){ doc.addPage(); y = 18; } doc.addImage(im, "JPEG", L+(W-w)/2, y, w, hh); y += hh + 1; caption(cap); }
+    catch(e){ doc.setFont("DejaVu","normal"); doc.setFontSize(8); doc.setTextColor(93,102,112); doc.text("A drawing could not be rendered in this browser. See the on-screen results.", L, y+3); y += 9; }
+  };
+  doc.setFillColor(...INK); doc.rect(0,0,210,24,"F");
+  doc.setTextColor(255); doc.setFont("DejaVu","bold"); doc.setFontSize(13);
+  doc.text("Steel Column Design to " + code, L, 11);
+  doc.setFont("DejaVu","normal"); doc.setFontSize(8.5);
+  doc.text(`Project: ${v.proj || "–"}   |   Column: ${v.mark || "–"}   |   Date: ${today()}`, L, 18);
+  const col = M.allOk ? GREEN : RED;
+  doc.setDrawColor(...col); doc.setFillColor(...(M.allOk ? [227,243,233] : [251,229,227])); doc.roundedRect(L,29,W,19,1.5,1.5,"FD");
+  doc.setTextColor(...col); doc.setFont("DejaVu","bold"); doc.setFontSize(15); doc.text(M.allOk?"PASS":"FAIL", L+4, 40.5);
+  doc.setTextColor(...INK); doc.setFont("DejaVu","normal"); doc.setFontSize(8.3);
+  const vt = `${strip(headline())}. ${strip(strengthLine())} ` + (M.allOk ? "All checks satisfied." : `Not satisfied: ${M.failed.map(k=>strip(k.name)).join("; ")}.`);
+  doc.text(doc.splitTextToSize(vt, W-30).slice(0,4), L+26, 34);
+  y = 56; heading("1. Input parameters");
+  doc.autoTable({...base, startY:y, head:[["Parameter","Value","Unit"]], body:M.inRows.map(r=>r.map(strip)), columnStyles:{0:{cellWidth:62},2:{cellWidth:16}}});
+  after();
+  heading("2. Check summary");
+  const cb = []; let lg = "", i = 0;
+  M.checks.forEach(k => { if (k.group !== lg){ lg = k.group; cb.push([{content:k.group.toUpperCase(), colSpan:6, styles:grpStyle}]); }
+    cb.push([++i, strip(k.name), k.ref, strip(k.demand), strip(k.capacity), statusOf(k)]); });
+  doc.autoTable({...base, startY:y, head:[["#","Check","Clause","Required","Provided / actual","Status"]], body:cb,
+    columnStyles:{0:{cellWidth:7},5:{cellWidth:16,halign:"center"}}, didParseCell:colourStatus});
+  after();
+  heading("3. Load combinations");
+  doc.autoTable({...base, startY:y, head:[COMBO_HEAD.map(strip)], body:comboRows(M), styles:{...base.styles, fontSize:7}, didParseCell:colourStatus});
+  after();
+  heading("4. Column and end moments"); y += 2;
+  const ps = plotSvgs(M);
+  if (ps[0]) await fig(ps[0].svg, ps[0].w, ps[0].h, 175, "Governing combination: column, factored end moments and buckling lengths");
+  y += 3;
+  heading("5. Design procedure");
+  let lp = "";
+  M.steps.forEach((s,i) => {
+    if (s.part !== lp){ lp = s.part; if (y > 265){ doc.addPage(); y = 18; } doc.setFont("DejaVu","bold"); doc.setFontSize(9); doc.setTextColor(...ACC); doc.text(s.part, L, y+1); y += 4; }
+    const body = s.lines.map(l => [{content:strip(l), colSpan:2}]);
+    if (s.note) body.push([{content:strip(s.note), colSpan:2, styles:{textColor:[93,102,112]}}]);
+    doc.autoTable({...base, startY:y, rowPageBreak:"avoid",
+      head:[[`Step ${i+1}. ${strip(s.title)}`, {content:refLabel(s.ref), styles:{halign:"right"}}]],
+      headStyles:{fillColor:[230,238,246], textColor:ACC, font:"DejaVu", fontStyle:"bold"}, body});
+    after(3);
+  });
+  y += 5;
+  heading("6. Outcome and summary");
+  doc.autoTable({...base, startY:y, head:[["Item","Result","Remark","Status"]],
+    body:M.sumRows.map(r => r.g ? [{content:r.g.toUpperCase(), colSpan:4, styles:grpStyle}] : r.map(strip)),
+    foot:[M.outcomeRow.map(strip)], showFoot:"lastPage",
+    footStyles:{fillColor:[240,238,231], textColor:M.allOk?GREEN:RED, font:"DejaVu", fontStyle:"bold"},
+    columnStyles:{0:{cellWidth:38},1:{cellWidth:46},3:{cellWidth:16,halign:"center"}}, didParseCell:colourStatus});
+  after();
+  if (M.actions.length){ heading("Items to resolve"); doc.autoTable({...base, startY:y, head:[["Check","Clause","Required","Actual","Action"]], body:M.actions.map(r=>r.map(strip))}); after(); }
+  doc.setFont("DejaVu","normal"); doc.setFontSize(8); doc.setTextColor(93,102,112);
+  const sn = doc.splitTextToSize(strip(SCOPE_NOTE), W); if (y + sn.length*4 > 275){ doc.addPage(); y = 18; }
+  doc.text(sn, L, y); y += sn.length*4 + 6;
+  heading("7. Section detail"); y += 3;
+  for (const d of detailSvgs(M)) await fig(d.svg, d.w, d.h, d.w>400?95:85, d.cap);
+  heading("Section properties");
+  doc.autoTable({...base, startY:y, head:[["Property","Value","Unit","Remark"]], body:M.schedule.map(r=>r.map(c=>strip(String(c))))});
+  after(8);
+  heading("8. References");
+  doc.autoTable({...base, theme:"plain", startY:y, body:REFS.map((r,i)=>[`${i+1}.`, strip(r)]), columnStyles:{0:{cellWidth:8}}, styles:{...base.styles, lineWidth:0}});
+  after(10);
+  if (y > 275){ doc.addPage(); y = 20; }
+  doc.setDrawColor(205,202,192); doc.setLineWidth(0.2); doc.line(L, y, R, y);
+  doc.setFont("DejaVu","normal"); doc.setFontSize(8.5); doc.setTextColor(93,102,112);
+  doc.text("Developed by " + AUTHOR, L + W/2, y + 6, {align:"center"});
+  const pages = doc.getNumberOfPages();
+  for (let i=1;i<=pages;i++){
+    doc.setPage(i); doc.setFont("DejaVu","normal"); doc.setFontSize(7.5); doc.setTextColor(93,102,112);
+    doc.text(`Steel column design, ${code}${v.mark ? "   |   Column " + v.mark : ""}`, L, 290);
+    doc.text(`Page ${i} of ${pages}`, R, 290, {align:"right"});
+  }
+  return doc.output("arraybuffer");
+}
+function buildXlsx(){
+  const X = window.XLSX, {v} = M, wb = X.utils.book_new();
+  const add = (name, aoa, widths) => { const ws = X.utils.aoa_to_sheet(aoa); ws["!cols"] = widths.map(w=>({wch:w})); X.utils.book_append_sheet(wb, ws, name); };
+  add("Summary", [["Steel column design"], ["Design code", "IS 800:2007"], ["Project", v.proj || ""], ["Column mark", v.mark || ""], ["Date", today()], [],
+    ["Item","Result","Remark","Status"], ...M.sumRows.map(r => r.g ? [r.g.toUpperCase()] : r.map(strip)), M.outcomeRow.map(strip), [],
+    ...(M.actions.length ? [["Items to resolve"],["Check","Clause","Required","Actual","Action"], ...M.actions.map(r=>r.map(strip)), []] : []),
+    [strip(SCOPE_NOTE)], [], ["Developed by " + AUTHOR]], [34,40,70,10,50]);
+  add("Inputs", [["Parameter","Value","Unit"], ...M.inRows.map(r=>r.map(strip))], [40,80,10]);
+  add("Combinations", [COMBO_HEAD.map(strip), ...comboRows(M)], [5,24,10,12,12,13,9,9,10,10,8,8,8]);
+  const proc = [["Step","Title","Clause","Calculation"]]; let lp = "";
+  M.steps.forEach((s,i) => { if (s.part !== lp){ lp = s.part; proc.push(["", s.part.toUpperCase()]); }
+    s.lines.forEach((l,j) => proc.push([j?"":i+1, j?"":strip(s.title), j?"":refLabel(s.ref), strip(l)])); if (s.note) proc.push(["","","", "Note: " + strip(s.note)]); });
+  add("Procedure", proc, [6,40,30,140]);
+  const ch = [["#","Group","Check","Clause","Required","Provided / actual","Status"]];
+  M.checks.forEach((k,i)=>ch.push([i+1, k.group, strip(k.name), k.ref, strip(k.demand), strip(k.capacity), statusOf(k)]));
+  add("Checks", ch, [5,26,50,18,28,30,10]);
+  add("Section properties", [["Property","Value","Unit","Remark"], ...M.schedule.map(r=>r.map(c=>strip(String(c))))], [30,40,12,50]);
+  add("References", [["#","Reference"], ...REFS.map((r,i)=>[i+1, strip(r)]), [], ["Developed by " + AUTHOR]], [6,170]);
+  return X.write(wb, {type:"array", bookType:"xlsx"});
+}
+function reportText(){
+  if (!M) return "";
+  const {v} = M;
+  return ["STEEL COLUMN DESIGN - IS 800:2007", `Project: ${v.proj||"-"}   Column: ${v.mark||"-"}   Date: ${today()}`, "",
+    "INPUTS", ...M.inRows.map(r=>`  ${strip(r[0])}: ${strip(r[1])} ${r[2]}`), "",
+    "LOAD COMBINATIONS", "  "+COMBO_HEAD.map(strip).join(" | "), ...comboRows(M).map(r=>"  "+r.join(" | ")), "",
+    "PROCEDURE", ...M.steps.map((s,i)=>`  Step ${i+1}. ${strip(s.title)} [${refLabel(s.ref)}]\n` + s.lines.map(l=>"    "+strip(l)).join("\n")), "",
+    "CHECKS", ...M.checks.map((k,i)=>`  ${i+1}. [${k.group}] ${strip(k.name)} [${k.ref}]  req: ${strip(k.demand)}  act: ${strip(k.capacity)}  -> ${statusOf(k)}`), "",
+    "OUTCOME AND SUMMARY", ...[...M.sumRows.filter(r=>!r.g), M.outcomeRow].map(r=>`  ${strip(r[0])}: ${strip(r[1])}${r[2]?"  ("+strip(r[2])+")":""}${r[3]?"  -> "+r[3]:""}`),
+    ...(M.actions.length ? ["", "ITEMS TO RESOLVE", ...M.actions.map(r=>`  ${strip(r[0])} [${r[1]}]: ${strip(r[4])}`)] : []), "",
+    "SECTION PROPERTIES", ...M.schedule.map(r=>`  ${strip(r[0])}: ${strip(r[1])} ${r[2]}`), "",
+    strip(SCOPE_NOTE), "", "Developed by " + AUTHOR].join("\n");
+}
+
+// ---------- wiring ----------
+ids.forEach(k => { if(k!=="sec" && k!=="bSec") $(k).value = DEFAULTS[k]; });
+fillSec(DEFAULTS.sec); fillBSec(DEFAULTS.bSec);
+renderCombos(DEFAULT_COMBOS);
+$("refs").innerHTML = REFS.map(r=>`<li>${r}</li>`).join("");
+$("fam").addEventListener("change", () => fillSec(null));
+$("bComp").addEventListener("change", () => fillBSec(null));
+$("form").addEventListener("submit", e => { e.preventDefault(); calculate(); });
+let raf=0; const redraw=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; showRows(); drawPreview(); }); };
+["input","change"].forEach(ev=>{ $("form").addEventListener(ev, markStale); $("form").addEventListener(ev, redraw); });
+$("lightest").addEventListener("click", findLightest);
+$("sizeBat").addEventListener("click", sizeBattens);
+showRows(); drawPreview();
+$("pdf").addEventListener("click", async () => {
+  if (!M || stale) return toast("Click Calculate first.", true);
+  toast("Building PDF…");
+  try { const data = await buildPdf(); await save(fileBase()+".pdf", data); } catch(e){ toast("Could not build the PDF: " + e.message, true); }
+});
+$("xls").addEventListener("click", async () => {
+  if (!M || stale) return toast("Click Calculate first.", true);
+  try { await ensureLibs("xlsx"); await save(fileBase()+".xlsx", buildXlsx()); } catch(e){ toast("Could not build the Excel file: " + e.message, true); }
+});
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(reportText()); toast("Report text copied."); }
+  catch(e){ toast("Copy was blocked by the browser.", true); }
+});
+calculate();
+</script>
+</body>
+</html>
